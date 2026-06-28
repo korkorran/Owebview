@@ -7,6 +7,10 @@ let std_flags = [ "-std=c++11" ]
 let macos_link_flags =
   [ "-lc++"; "-lobjc"; "-framework"; "WebKit"; "-framework"; "Cocoa" ]
 
+let mingw_flags = [ "-std=c++14";  ]
+
+let mingw_link_flags =
+  [ "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 (* Linux: the webview backend is GTK 3 + WebKitGTK. *)
 let linux_packages = [ "gtk+-3.0"; "webkit2gtk-4.1" ]
 
@@ -34,6 +38,9 @@ let () =
       let cflags, link_flags =
         match system with
         | "macosx" -> (std_flags, macos_link_flags)
+        | "mingw64" ->
+            let mingw_flags = [ "-isystem"; (Sys.getenv "microsoft_web_webview2") ^ "/build/native/include" ] @  mingw_flags in
+            (mingw_flags, mingw_link_flags)
         | _ -> (
             (* Assume a Linux system with pkg-config + the -dev packages. *)
             match linux_flags c with
