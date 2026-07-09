@@ -1,6 +1,7 @@
 (library
  (name webview)
  (public_name owebview.webview)
+ (flags )
  (foreign_stubs
   (language cxx)
   (names webview_stubs)

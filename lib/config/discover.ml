@@ -10,7 +10,7 @@ let macos_link_flags =
 let mingw_flags = [ "-std=c++14";  ]
 
 let mingw_link_flags =
-  [ "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
+  [ "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 (* Linux: the webview backend is GTK 3 + WebKitGTK. *)
 let linux_packages = [ "gtk+-3.0"; "webkit2gtk-4.1" ]
 
@@ -39,8 +39,17 @@ let () =
         match system with
         | "macosx" -> (std_flags, macos_link_flags)
         | "mingw64" ->
-            let mingw_flags = [ "-isystem"; (Sys.getenv "microsoft_web_webview2") ^ "/build/native/include" ] @  mingw_flags in
-            (mingw_flags, mingw_link_flags)
+            begin match (Sys.getenv_opt "MICROSOFT_WEB_WEBVIEW2") with
+            | Some webview2_path ->
+              let mingw_flags = [ "-isystem"; webview2_path ^ "/build/native/include" ] @  mingw_flags in
+              (mingw_flags, mingw_link_flags)
+            | None ->
+                C.die
+                  "the environment variable MICROSOFT_WEB_WEBVIEW2 is not \
+                   set. Please download the package from %s and declare the path in \
+                   the environment."
+                  "https://www.nuget.org/packages/Microsoft.Web.WebView2"
+            end
         | _ -> (
             (* Assume a Linux system with pkg-config + the -dev packages. *)
             match linux_flags c with
