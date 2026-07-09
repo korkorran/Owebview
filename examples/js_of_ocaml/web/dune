@@ -1,0 +1,15 @@
+(executable
+ (name app)
+ (libraries brr)
+ (js_of_ocaml
+  (flags
+   (:standard --target-env browser)))
+ (modes js)
+ (link_flags
+  (:standard -no-check-prims)))
+
+(rule
+ (targets app.js)
+ (deps app.bc.js)
+ (action
+  (copy %{deps} %{targets})))

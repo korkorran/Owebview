@@ -1,0 +1,12 @@
+(executable
+ (name hellowv)
+ (libraries webview unix))
+
+; Stage the web/ assets next to the built binary (_build/.../examples/web/) so
+; the example is self-contained in the build tree — without installing them
+; into the opam switch. The binary reads them from there, or from the source
+; tree when run via `dune exec`; see Webview.Utils.web_dir.
+(alias
+ (name all)
+ (deps
+  (glob_files web/*)))
