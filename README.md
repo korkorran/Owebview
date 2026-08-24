@@ -84,10 +84,15 @@ webview uses the system web engine, so you need its native libraries:
 - **macOS** — WebKit / Cocoa, already provided by the system. Nothing to install.
 - **Linux** — `gtk+-3.0` and `webkit2gtk-4.1` (the `-dev` packages). They are
   declared as opam `depexts`, so `opam pin` will offer to install them.
-- **Windows** — not covered by this skeleton (would need WebView2).
+- **Windows** — WebView2. Compilation works via the MinGW toolchain: install
+  the WebView2 SDK with NuGet (`nuget install Microsoft.Web.WebView2`) and the
+  `WebView2.h` header is picked up automatically from the NuGet cache (or set
+  `MICROSOFT_WEB_WEBVIEW2` to the package directory). At run time the WebView2
+  Runtime must be present — it ships with Windows 10/11.
 
 The platform-specific compile/link flags are detected automatically at build
-time (via `pkg-config` on Linux), so there's nothing to tweak by hand.
+time — via `pkg-config` on Linux, and from the NuGet cache on Windows — so
+there's nothing to tweak by hand.
 
 > This is a thin binding that covers the **full webview 0.12 C API**. It stays
 > low-level on purpose: higher-level conveniences (such as JSON (de)serializing
