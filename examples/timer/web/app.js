@@ -4,6 +4,8 @@
 // so it never drifts and it resumes where it was paused.
 
 const elapsedEl = document.getElementById("elapsed");
+const ringEl = document.querySelector(".ring-progress");
+const RING_CIRCUMFERENCE = 2 * Math.PI * 45; // matches r=45 in index.html
 
 let running = true;
 let segmentStart = Date.now(); // when the current running segment began
@@ -14,8 +16,14 @@ function currentMs() {
 }
 
 function render() {
+  const ms = currentMs();
   // Two decimals = hundredths of a second (e.g. "12.34").
-  elapsedEl.textContent = (currentMs() / 1000).toFixed(2);
+  elapsedEl.textContent = (ms / 1000).toFixed(2);
+  // Arc proportional to the seconds within the current minute: 0 s → no arc,
+  // 30 s → half circle, 60 s → full circle (then it resets for the next
+  // minute). fraction 0..1; a full dashoffset hides the arc.
+  const fraction = (ms % 60000) / 60000;
+  ringEl.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - fraction);
   document.body.classList.toggle("paused", !running);
 }
 

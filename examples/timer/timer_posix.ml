@@ -1,7 +1,7 @@
 let () =
   let w = Webview.create () in
   Webview.set_title w "Timer (Posix)";
-  Webview.set_size w ~width:320 ~height:220 Webview.Hint_none;
+  Webview.set_size w ~width:380 ~height:460 Webview.Hint_none;
 
   let icon = Filename.concat (Webview.Utils.web_dir ()) "timer.png" in
   if Sys.file_exists icon then

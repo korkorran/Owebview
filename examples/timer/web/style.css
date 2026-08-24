@@ -1,6 +1,12 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, -apple-system, sans-serif;
+  --accent: #16a34a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #22c55e;
+  }
 }
 
 body {
@@ -15,23 +21,59 @@ body {
   text-align: center;
 }
 
+/* Circular gauge: the arc fills over one minute (the seconds within the
+   current minute), centred on the number. */
+.gauge {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto;
+}
+
+.ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* start the arc at 12 o'clock, fill clockwise */
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  /* Circumference of r=45 is ~282.743; app.js sets the dashoffset — a full
+     length means nothing is drawn, so at 0 s there is no arc. */
+  stroke-dasharray: 282.743;
+  stroke-dashoffset: 282.743;
+}
+
+.readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 #elapsed {
-  font-size: 4.5rem;
+  font-size: 3.2rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .label {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   opacity: 0.55;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
-/* Dim the number while the timer is paused (toggled from app.js). */
-body.paused #elapsed {
+/* Dim the number and the arc while the timer is paused (toggled from app.js). */
+body.paused #elapsed,
+body.paused .ring-progress {
   opacity: 0.35;
 }
 

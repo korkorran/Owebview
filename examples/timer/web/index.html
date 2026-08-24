@@ -7,8 +7,15 @@
   </head>
   <body>
     <div class="timer">
-      <div id="elapsed">0</div>
-      <div class="label">seconds</div>
+      <div class="gauge">
+        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="ring-progress" cx="50" cy="50" r="45" />
+        </svg>
+        <div class="readout">
+          <div id="elapsed">0</div>
+          <div class="label">seconds</div>
+        </div>
+      </div>
       <button id="print">print time in console after 2 s</button>
     </div>
     <script src="app.js"></script>
