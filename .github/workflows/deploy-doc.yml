@@ -1,0 +1,64 @@
+name: Deploy documentation
+
+# Builds the odoc documentation and publishes it to GitHub Pages at
+# https://korkorran.github.io/owebview
+#
+# One-time setup on GitHub: Settings → Pages → "Build and deployment" →
+# Source = "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissions the deploy-pages action needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; don't cancel an in-progress one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # webview's Linux backend (GTK 3 + WebKitGTK) is needed to build the
+      # library — the configurator/stubs require these at build time.
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "5.2"
+
+      - name: Install project dependencies (incl. odoc)
+        run: opam install . --deps-only --with-doc
+
+      - name: Build the documentation
+        run: opam exec -- dune build @doc
+
+      - name: Upload the HTML as a Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _build/default/_doc/_html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
