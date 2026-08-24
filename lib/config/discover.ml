@@ -9,8 +9,10 @@ let macos_link_flags =
 
 let mingw_flags = [ "-std=c++14";  ]
 
+(* windowscodecs (WIC), gdi32 and uuid are pulled in by set_app_icon, which
+   decodes the image file itself and builds the HICON. *)
 let mingw_link_flags =
-  [ "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
+  [ "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion"; "-lwindowscodecs"; "-lgdi32"; "-luuid" ]
 
 (* --- WebView2 SDK header discovery (Windows/mingw) --------------------------
    webview.h includes "WebView2.h", which ships in the Microsoft.Web.WebView2

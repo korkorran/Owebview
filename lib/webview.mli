@@ -136,8 +136,9 @@ val set_app_icon : t -> string -> unit
 
     - {b macOS}: the Dock icon (application-global; [w] is ignored).
     - {b Linux/GTK}: the window's icon (taskbar/switcher).
-    - {b Windows}: the window's icon via [WM_SETICON] — Win32 loads [.ico]
-      files, so a [.png] will not decode there.
+    - {b Windows}: the window's icon via [WM_SETICON]. The file is decoded with
+      WIC, so any format Windows imaging supports works ([.png], [.jpg],
+      [.bmp], [.gif], [.tif], [.ico]); it is rescaled to the system icon sizes.
 
     Raises [Failure] if the image cannot be loaded; a no-op on other backends.
 
