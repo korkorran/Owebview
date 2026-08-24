@@ -1,6 +1,19 @@
-(** Minimal OCaml binding skeleton for https://github.com/webview/webview
+(** Owebview — OCaml bindings for {{:https://github.com/webview/webview}webview}
+    0.12.
 
-    This binds the classic C API (webview 0.12). *)
+    Open a native window backed by the operating system's web engine, load
+    HTML/CSS/JS, and call back and forth between the page's JavaScript and
+    OCaml — no Electron, no bundler.
+
+    {[
+      let () =
+        let w = Webview.create () in
+        Webview.set_title w "Hello";
+        Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
+        Webview.set_html w "<h1>Hello from OCaml</h1>";
+        Webview.run w;
+        Webview.destroy w
+    ]} *)
 
 type t
 (** An opaque handle to a webview instance (a C [webview_t]). *)
@@ -11,6 +24,8 @@ type hint =
   | Hint_min  (** width/height are the minimum bounds *)
   | Hint_max  (** width/height are the maximum bounds *)
   | Hint_fixed  (** window is not resizable *)
+
+(** {1 Lifecycle} *)
 
 val create : ?debug:bool -> unit -> t
 (** [create ?debug ()] creates a new webview. When [debug] is true the developer
@@ -27,8 +42,16 @@ val run : t -> unit
 val terminate : t -> unit
 (** Stop the main loop started by {!run}. Safe to call from a binding. *)
 
+(** {1 Window} *)
+
 val set_title : t -> string -> unit
+(** [set_title w title] sets the window title. *)
+
 val set_size : t -> width:int -> height:int -> hint -> unit
+(** [set_size w ~width ~height hint] sets the window size in pixels; [hint]
+    controls how the size is interpreted (see {!type:hint}). *)
+
+(** {1 Navigation and content} *)
 
 val navigate : t -> string -> unit
 (** Navigate to a URL (supports [http://], [https://], [file://], [data:]). *)
@@ -41,6 +64,11 @@ val init : t -> string -> unit
 
 val eval : t -> string -> unit
 (** Evaluate JS in the current page. *)
+
+(** {1 JavaScript bridge}
+
+    Expose OCaml functions to the page as [window.<name>(...)] and resolve the
+    JavaScript promises they return. *)
 
 val bind : t -> string -> (string -> string -> unit) -> unit
 (** [bind w name f] exposes a JS function [window.name(...)] that calls back
@@ -55,15 +83,19 @@ val unbind : t -> string -> unit
 (** [unbind w name] removes the binding [name] created with {!bind}, releasing
     the closure's GC root. Raises [Failure] if no such binding exists. *)
 
+val return : t -> string -> error:bool -> result:string -> unit
+(** [return w id ~error ~result] resolves (or rejects, if [error]) the JS
+    promise associated with the call [id]. [result] must be a JSON value. *)
+
+(** {1 Threading} *)
+
 val dispatch : t -> (t -> unit) -> unit
 (** [dispatch w f] schedules [f] to run once on the UI thread (the thread
     running {!run}), passing it the webview handle. This is the thread-safe way
     to drive the webview from another thread: call e.g. {!eval} or
     {!set_title} from inside [f]. Any exception raised by [f] is dropped. *)
 
-val return : t -> string -> error:bool -> result:string -> unit
-(** [return w id ~error ~result] resolves (or rejects, if [error]) the JS
-    promise associated with the call [id]. [result] must be a JSON value. *)
+(** {1 Library version} *)
 
 (** The library's version information, as returned by {!version}. *)
 type version_info = {
@@ -77,6 +109,8 @@ type version_info = {
 
 val version : unit -> version_info
 (** The webview library's version information. *)
+
+(** {1 Native handles} *)
 
 (** The kind of native handle to retrieve with {!get_native_handle}, mirrors
     [WEBVIEW_NATIVE_HANDLE_KIND_*]. *)
@@ -94,6 +128,8 @@ val get_native_handle : t -> native_handle_kind -> nativeint
 (** [get_native_handle w kind] returns the requested native handle as a pointer
     ([0n] if unavailable). *)
 
+(** {1 Application icon} *)
+
 val set_app_icon : t -> string -> unit
 (** [set_app_icon w path] sets the application/window icon from an image file,
     so a plain executable shows a custom icon instead of the generic one:
@@ -108,6 +144,8 @@ val set_app_icon : t -> string -> unit
     On macOS the process only becomes a regular (Dock-visible) app once {!run}
     has started, so call this {b once the app is active} — e.g. from a
     {!dispatch} callback — otherwise the Dock ignores it. *)
+
+(** {1 Locating assets} *)
 
 (** Filesystem helpers for locating on-disk assets (HTML/CSS/JS) relative to the
     running executable, independently of the current working directory. *)

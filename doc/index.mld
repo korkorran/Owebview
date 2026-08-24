@@ -1,0 +1,54 @@
+{0 Owebview}
+
+A thin OCaml binding to {{:https://github.com/webview/webview}webview}: open a
+native window backed by the operating system's web engine, load HTML/CSS/JS,
+and bridge JavaScript with OCaml — no Electron, no bundler.
+
+{1 Quickstart}
+
+A whole application is about ten lines:
+
+{[
+  let () =
+    let w = Webview.create () in
+    Webview.set_title w "My first owebview app";
+    Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
+    Webview.set_html w "<h1>Hello from OCaml</h1>";
+    Webview.run w;
+    Webview.destroy w
+]}
+
+Call OCaml from the page and answer the JavaScript promise:
+
+{[
+  Webview.bind w "add" (fun id req ->
+      let result =
+        match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
+        | Some n -> string_of_int n
+        | None -> "null"
+      in
+      Webview.return w id ~error:false ~result)
+]}
+
+{1 API}
+
+The whole binding is the {!module:Webview} module. A tour of it:
+
+- {b Lifecycle}: {!Webview.create}, {!Webview.run}, {!Webview.terminate},
+  {!Webview.destroy}
+- {b Content}: {!Webview.navigate}, {!Webview.set_html}, {!Webview.eval}
+- {b JavaScript bridge}: {!Webview.bind}, {!Webview.unbind}, {!Webview.return}
+- {b Threading}: {!Webview.dispatch}
+- {b Native handles & icon}: {!Webview.get_native_handle}, {!Webview.set_app_icon}
+- {b Locating on-disk assets}: {!Webview.Utils.web_dir}
+
+{1 Native dependencies}
+
+webview uses the system web engine, so its native libraries are needed:
+
+- {b macOS}: WebKit / Cocoa, provided by the system.
+- {b Linux}: [gtk+-3.0] and [webkit2gtk-4.1] ([-dev] packages).
+- {b Windows}: the WebView2 runtime (ships with Windows 10/11).
+
+The platform-specific compile and link flags are detected automatically at
+build time, so there is nothing to tweak by hand.
