@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  color: #444;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.info {
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  pointer-events: none;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+}

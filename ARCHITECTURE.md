@@ -19,6 +19,7 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 | `examples/hellowv/web/` | Page assets (`index.html` + `style.css` + `app.js`) |
 | `examples/timer/` | Seconds counter, pure HTML/CSS/JS with OCaml bindings |
 | `examples/d3/` | Bar chart with a vendored D3.js (no bindings) |
+| `examples/three/` | 3D shapes (WebGL) with a vendored three.js (no bindings) |
 | `vendor/webview.h` | Vendored webview amalgamated single-header (0.12) |
 
 The implementation deliberately uses **manual C stubs** rather than `ctypes`,
