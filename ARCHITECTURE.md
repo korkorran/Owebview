@@ -38,7 +38,7 @@ in order to make the two sensitive points explicit:
 - The native dependencies:
   - **macOS**: WebKit / Cocoa (provided by the system)
   - **Linux**: `gtk+-3.0` + `webkit2gtk-4.1` (`-dev` packages)
-  - **Windows**: WebView2 (not covered by this skeleton)
+  - **Windows**: WebView2 (install with nuget)
 
 ## Build & run
 
@@ -85,6 +85,3 @@ This installs the **library** only. The `hellowv` example (its binary and its
 `web/` assets) is a development build and is intentionally not installed into
 the opam switch.
 
-## Ideas for going further
-
-- Integrate `yojson` to cleanly (de)serialize `req`/`result`.

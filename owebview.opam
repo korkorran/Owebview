@@ -2,17 +2,24 @@
 opam-version: "2.0"
 synopsis: "OCaml bindings for the webview library"
 description: """
-A small OCaml binding skeleton for the webview library
-(https://github.com/webview/webview): window creation, navigation,
-bidirectional JS <-> OCaml bindings, plus an example application.
+OCaml bindings for the webview library (https://github.com/webview/webview):
+create a native desktop window rendered by the system web engine, navigate to a
+URL or to inline HTML, and call back and forth between OCaml and JavaScript.
+The binding covers the full webview 0.12 C API and stays deliberately
+low-level; the C header is vendored, so nothing is fetched at build time.
 
-On macOS the native dependencies (WebKit/Cocoa) are provided by the system;
-on Linux they are declared as depexts (gtk+-3.0 and webkit2gtk-4.1) for common distributions."""
+The native dependencies are the ones of the system web engine: WebKit and Cocoa
+on macOS (provided by the system, nothing to install), gtk+-3.0 and
+webkit2gtk-4.1 on Linux (declared as depexts for common distributions), and
+WebView2 on Windows (the runtime ships with Windows 10 and 11; the SDK headers
+are located through the NuGet cache at build time)."""
 maintainer: ["frederic.ln.lang@gmail.com"]
 authors: ["Frédéric Lang"]
 license: "MIT"
-homepage: "https://github.com/korkorran/owebview"
-bug-reports: "https://github.com/korkorran/owebview/issues"
+tags: ["webview" "gui" "desktop" "webkit" "html" "javascript" "bindings"]
+homepage: "https://github.com/korkorran/Owebview"
+doc: "https://korkorran.github.io/Owebview"
+bug-reports: "https://github.com/korkorran/Owebview/issues"
 depends: [
   "dune" {>= "3.0"}
   "ocaml" {>= "4.08"}
@@ -34,10 +41,11 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/korkorran/owebview.git"
+dev-repo: "git+https://github.com/korkorran/Owebview.git"
 depexts: [
   ["libgtk-3-dev" "libwebkit2gtk-4.1-dev"] {os-family = "debian"}
   ["gtk3-devel" "webkit2gtk4.1-devel"] {os-family = "fedora" | os-family = "rhel"}
   ["gtk3" "webkit2gtk-4.1"] {os-family = "arch"}
   ["gtk+3.0-dev" "webkit2gtk-4.1-dev"] {os-distribution = "alpine"}
 ]
+x-maintenance-intent: ["(latest)"]

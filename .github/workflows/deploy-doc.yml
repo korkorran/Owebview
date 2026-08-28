@@ -1,7 +1,7 @@
 name: Deploy documentation
 
 # Builds the odoc documentation and publishes it to GitHub Pages at
-# https://korkorran.github.io/owebview
+# https://korkorran.github.io/Owebview
 #
 # One-time setup on GitHub: Settings → Pages → "Build and deployment" →
 # Source = "GitHub Actions".

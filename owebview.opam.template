@@ -4,3 +4,4 @@ depexts: [
   ["gtk3" "webkit2gtk-4.1"] {os-family = "arch"}
   ["gtk+3.0-dev" "webkit2gtk-4.1-dev"] {os-distribution = "alpine"}
 ]
+x-maintenance-intent: ["(latest)"]

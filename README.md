@@ -1,4 +1,4 @@
-# owebview
+# Owebview
 
 Build a tiny native desktop window with a web UI, straight from OCaml — powered
 by [webview](https://github.com/webview/webview).
@@ -23,13 +23,20 @@ let () =
   Webview.destroy w
 ```
 
-## See it run (30 seconds)
+## See it run
 
 Clone the repo and launch the bundled example, `hellowv`:
 
 ```sh
-git clone https://github.com/korkorran/owebview.git
-cd owebview
+git clone https://github.com/korkorran/Owebview.git
+cd Owebview
+```
+on Windows :
+```sh
+nuget install Microsoft.Web.WebView2
+```
+```sh
+opam install . --deps-only
 dune exec examples/hellowv/hellowv.exe
 ```
 
@@ -51,7 +58,7 @@ into OCaml.
 Pin the library with opam (the `webview.h` header is vendored, nothing to fetch):
 
 ```sh
-opam pin add owebview https://github.com/korkorran/owebview.git
+opam pin add owebview https://github.com/korkorran/Owebview.git
 ```
 
 Then depend on it from your `dune` file:
@@ -59,7 +66,7 @@ Then depend on it from your `dune` file:
 ```dune
 (executable
  (name main)
- (libraries owebview.webview))
+ (libraries owebview))
 ```
 
 Drop the example above into `main.ml` and run `dune exec ./main.exe`. That's it.
