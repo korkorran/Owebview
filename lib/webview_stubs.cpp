@@ -436,6 +436,27 @@ CAMLprim value ocaml_webview_set_app_icon(value vw, value vpath) {
   CAMLreturn(Val_unit);
 }
 
+/* Sets the process-wide application id used by the windowing system to match
+ * this process's windows to an installed .desktop file (Linux/GTK only).
+ *  - X11: becomes the WM_CLASS class name.
+ *  - Wayland: becomes the xdg_toplevel app_id.
+ * Desktop shells (e.g. GNOME) use this id -- matched against an installed
+ * .desktop file's id or its StartupWMClass= -- to pick which icon to show in
+ * the Dock/taskbar; set_app_icon alone has no effect under Wayland, since it
+ * only sets the X11 _NET_WM_ICON property, which does not exist there. Call
+ * this once, before create, so it applies to the first window realized.
+ * A no-op on other backends. */
+CAMLprim value ocaml_webview_set_app_id(value vid) {
+  CAMLparam1(vid);
+  const char *id = String_val(vid);
+#if defined(__linux__)
+  g_set_prgname(id);
+#else
+  (void)id;
+#endif
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_webview_run(value vw) {
   CAMLparam1(vw);
   webview_t w = wv_of_val(vw);

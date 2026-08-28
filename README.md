@@ -39,6 +39,13 @@ files in [`examples/hellowv/web/`](examples/hellowv/web/) — peek at
 [`examples/hellowv/hellowv.ml`](examples/hellowv/hellowv.ml) to see how JavaScript calls back
 into OCaml.
 
+> **Linux Dock icon**: on native Wayland (GNOME's default), the Dock ignores
+> `Webview.set_app_icon` — it resolves an app's icon from an installed
+> `.desktop` file, not from window properties. Run
+> `examples/hellowv/install-desktop-entry.sh` once to install one for the
+> example (`--uninstall` removes it); see `Webview.set_app_id` in
+> [`lib/webview.mli`](lib/webview.mli) for the details.
+
 ## Use it in your own project
 
 Pin the library with opam (the `webview.h` header is vendored, nothing to fetch):

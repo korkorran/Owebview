@@ -4,17 +4,29 @@ let () =
   let v = Webview.version () in
   Printf.printf "using webview %s\n%!" v.Webview.version_number;
 
+  (* App id (Linux only, no-op elsewhere): must be set before [create] so it
+     applies to the first window. On Linux this becomes the X11 WM_CLASS /
+     Wayland app_id, which desktop shells match against an installed
+     .desktop file to pick a Dock icon — see install-desktop-entry.sh and
+     the set_app_id/set_app_icon docs in lib/webview.mli. *)
+  Webview.set_app_id "hellowv";
+
   let w = Webview.create ~debug:true () in
   Webview.set_title w "Hello from OCaml";
   Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
 
-  (* Custom Dock icon (macOS): if a hello.png sits next to the web assets, use
-     it instead of the generic executable icon. Drop your own hello.png in
+  (* Custom Dock icon: if a hello.png sits next to the web assets, use it
+     instead of the generic executable icon. Drop your own hello.png in
      examples/hellowv/web/ to see it. webview only turns the process into a
      regular (Dock-visible) app inside applicationDidFinishLaunching:, which
      fires *after* [run] starts, so we set the icon from a dispatched callback
      (it runs on the UI thread once the app is active) — setting it before [run]
-     is too early and the Dock ignores it. *)
+     is too early and the Dock ignores it (macOS).
+
+     On Linux, this alone only sets the window icon (taskbar/switcher) and,
+     under X11, _NET_WM_ICON. GNOME's Dock under Wayland ignores it entirely
+     and instead needs an installed .desktop file matching set_app_id above
+     — run ./install-desktop-entry.sh once to see it there too. *)
   let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview.set_app_icon w icon);

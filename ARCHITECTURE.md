@@ -17,6 +17,7 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 | `examples/hellowv/hellowv.ml` | Minimal window with two JS → OCaml bindings |
 | `examples/hellowv/utils.ml` | Example-local helper (host OS detection) |
 | `examples/hellowv/web/` | Page assets (`index.html` + `style.css` + `app.js`) |
+| `examples/hellowv/install-desktop-entry.sh` | Installs a `.desktop` file so the example gets a real Dock icon on Linux/Wayland |
 | `examples/timer/` | Seconds counter, pure HTML/CSS/JS with OCaml bindings |
 | `examples/d3/` | Bar chart with a vendored D3.js (no bindings) |
 | `examples/three/` | 3D shapes (WebGL) with a vendored three.js (no bindings) |
