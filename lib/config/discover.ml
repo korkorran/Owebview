@@ -78,21 +78,36 @@ let webview2_include () =
 (* Linux: the webview backend is GTK 3 + WebKitGTK. *)
 let linux_packages = [ "gtk+-3.0"; "webkit2gtk-4.1" ]
 
-(* Query pkg-config for each package and merge the results. Returns None if
-   pkg-config is unavailable or any package is missing. *)
+(* Query pkg-config for each package and merge the results. Dies with a message
+   that names the actual problem: pkg-config itself missing is a different
+   failure from a missing -dev package, and conflating the two sends people
+   hunting for the wrong thing. *)
 let linux_flags c =
-  match C.Pkg_config.get c with
-  | None -> None
-  | Some pc ->
-      let results = List.map (fun p -> C.Pkg_config.query pc ~package:p) linux_packages in
-      if List.mem None results then None
-      else
-        let confs =
-          List.map (function Some conf -> conf | None -> assert false) results
-        in
-        let cflags = List.concat (List.map (fun (c : C.Pkg_config.package_conf) -> c.cflags) confs) in
-        let libs = List.concat (List.map (fun (c : C.Pkg_config.package_conf) -> c.libs) confs) in
-        Some (cflags, libs)
+  let pc =
+    match C.Pkg_config.get c with
+    | Some pc -> pc
+    | None ->
+        C.die
+          "pkg-config was not found, and it is needed to locate the webview \
+           native dependencies (%s). Under opam it comes from conf-pkg-config; \
+           otherwise install your distribution's pkg-config (or pkgconf) \
+           package."
+          (String.concat " " linux_packages)
+  in
+  let results =
+    List.map (fun p -> (p, C.Pkg_config.query pc ~package:p)) linux_packages
+  in
+  match List.filter (fun (_, r) -> r = None) results with
+  | _ :: _ as missing ->
+      C.die
+        "pkg-config is installed but could not find: %s. Install the \
+         corresponding development packages (see the package depexts)."
+        (String.concat " " (List.map fst missing))
+  | [] ->
+      let confs = List.filter_map snd results in
+      let cflags = List.concat (List.map (fun (c : C.Pkg_config.package_conf) -> c.cflags) confs) in
+      let libs = List.concat (List.map (fun (c : C.Pkg_config.package_conf) -> c.libs) confs) in
+      (cflags, libs)
 
 let () =
   C.main ~name:"webview" (fun c ->
@@ -114,18 +129,13 @@ let () =
                    set MICROSOFT_WEB_WEBVIEW2 to the package directory. \
                    Package: %s"
                   "https://www.nuget.org/packages/Microsoft.Web.WebView2")
-        | _ -> (
-            (* Assume a Linux system with pkg-config + the -dev packages. *)
-            match linux_flags c with
+        | _ ->
+            (* Assume a Linux system with pkg-config + the -dev packages;
+               linux_flags reports precisely what is missing otherwise. *)
+            let cflags, libs = linux_flags c in
             (* -lstdc++ links the GNU C++ runtime needed by the stub; on macOS
                this role is played by -lc++ in macos_link_flags. *)
-            | Some (cflags, libs) -> (std_flags @ cflags, "-lstdc++" :: libs)
-            | None ->
-                C.die
-                  "could not detect the webview native dependencies via \
-                   pkg-config (need %s). Install the -dev packages (see the \
-                   package depexts)."
-                  (String.concat " " linux_packages))
+            (std_flags @ cflags, "-lstdc++" :: libs)
       in
       C.Flags.write_sexp "c_flags.sexp" cflags;
       C.Flags.write_sexp "c_library_flags.sexp" link_flags)

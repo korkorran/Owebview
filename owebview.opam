@@ -10,7 +10,7 @@ low-level; the C header is vendored, so nothing is fetched at build time.
 
 The native dependencies are the ones of the system web engine: WebKit and Cocoa
 on macOS (provided by the system, nothing to install), gtk+-3.0 and
-webkit2gtk-4.1 on Linux (declared as depexts for common distributions), and
+webkit2gtk-4.1 on Linux (pulled in by the conf-gtk3-webkit package), and
 WebView2 on Windows (the runtime ships with Windows 10 and 11; the SDK headers
 are located through the NuGet cache at build time)."""
 maintainer: ["frederic.ln.lang@gmail.com"]
@@ -20,13 +20,6 @@ tags: ["webview" "gui" "desktop" "webkit" "html" "javascript" "bindings"]
 homepage: "https://github.com/korkorran/Owebview"
 doc: "https://korkorran.github.io/Owebview"
 bug-reports: "https://github.com/korkorran/Owebview/issues"
-depends: [
-  "dune" {>= "3.0"}
-  "ocaml" {>= "4.08"}
-  "dune-configurator" {>= "3.0" & build}
-  "conf-c++"
-  "odoc" {with-doc}
-]
 build: [
   ["dune" "subst"] {dev}
   [
@@ -42,10 +35,18 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/korkorran/Owebview.git"
-depexts: [
-  ["libgtk-3-dev" "libwebkit2gtk-4.1-dev"] {os-family = "debian"}
-  ["gtk3-devel" "webkit2gtk4.1-devel"] {os-family = "fedora" | os-family = "rhel"}
-  ["gtk3" "webkit2gtk-4.1"] {os-family = "arch"}
-  ["gtk+3.0-dev" "webkit2gtk-4.1-dev"] {os-distribution = "alpine"}
+# NOTE: this block overrides the `depends` generated from (depends ...) in
+# dune-project — dune lets the template win and does not emit the field twice.
+# It lives here because dune cannot express opam filters such as
+# `{os != "macos"}`, and conf-gtk3-webkit is only needed where the backend is
+# GTK/WebKitGTK: not on macOS (WebKit/Cocoa) nor on Windows (WebView2).
+# Keep it in sync with (depends ...) in dune-project.
+depends: [
+  "dune" {>= "3.0"}
+  "ocaml" {>= "4.08"}
+  "dune-configurator" {>= "3.0" & build}
+  "conf-c++"
+  "conf-gtk3-webkit" {os != "macos" & os != "win32"}
+  "odoc" {with-doc}
 ]
 x-maintenance-intent: ["(latest)"]

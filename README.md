@@ -96,8 +96,9 @@ page), `Webview.init` / `Webview.eval` (inject JavaScript), and
 webview uses the system web engine, so you need its native libraries:
 
 - **macOS** — WebKit / Cocoa, already provided by the system. Nothing to install.
-- **Linux** — `gtk+-3.0` and `webkit2gtk-4.1` (the `-dev` packages). They are
-  declared as opam `depexts`, so `opam pin` will offer to install them.
+- **Linux** — `gtk+-3.0` and `webkit2gtk-4.1` (the `-dev` packages). They come
+  from the `conf-gtk3-webkit` opam package, so `opam install` will offer to
+  install them for your distribution.
 - **Windows** — WebView2. Compilation works via the MinGW toolchain: install
   the WebView2 SDK with NuGet (`nuget install Microsoft.Web.WebView2`) and the
   `WebView2.h` header is picked up automatically from the NuGet cache (or set
