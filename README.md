@@ -1,9 +1,23 @@
-# Owebview
+<p align="center">
+  <img src="https://raw.githubusercontent.com/korkorran/Owebview/main/logo.png" width="200" alt="owebview">
+</p>
+<h1 align=center>Owebview</h1>
+<p align="center"><b>An embedded web rendering engine.</b></p>
+<br/>
 
-Build a tiny native desktop window with a web UI, straight from OCaml — powered
-by [webview](https://github.com/webview/webview).
+Powered by [webview](https://github.com/webview/webview).
+All the power of web technologies in your app. No Electron, no bundler: create a window, drop in some HTML, and you have an app.
 
-No Electron, no bundler: create a window, drop in some HTML, and you have an app.
+## Exemples
+
+| Rainfall (D3.js) | Geometry shapes (three.js) | Timer |
+____
+| ![Rainfall chart](./doc/screenshots/d3.png) | ![3D shapes](./doc/screenshots/three.png) | ![Timer](./doc/screenshots/timer.png)|
+| `dune exec examples/d3/d3.exe` | `dune exec examples/three/three.exe` | `dune exec examples/timer/timer_posix.exe` |
+
+Build a tiny native desktop window with a web UI, straight from OCaml — 
+
+
 Here's the whole thing:
 
 ```ocaml
