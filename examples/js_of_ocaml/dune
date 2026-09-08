@@ -1,6 +1,8 @@
 (executable
  (name hellowv)
- (libraries webview unix))
+ ; threads.posix: the console reader runs on a background thread, so that
+ ; input_line does not block the webview event loop.
+ (libraries webview unix threads.posix))
 
 ; Stage the web/ assets next to the built binary (_build/.../examples/web/) so
 ; the example is self-contained in the build tree — without installing them

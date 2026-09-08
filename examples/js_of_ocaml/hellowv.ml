@@ -25,7 +25,9 @@ let () =
   (* Expose window.os_type() to JS. Returns the host OS as a JSON string. *)
   Webview.bind w "os_type" (fun id req ->
       Printf.printf "binding called <os_type>: id=%s req=%s\n%!" id req;
-      let result = Printf.sprintf "show(%S)" (Utils.detect_os ()) in
+      let result =
+        Printf.sprintf "show(%s)" (Utils.js_quote (Utils.detect_os ()))
+      in
       Webview.eval w result;
       Webview.return w id ~error:false ~result:"");
 
@@ -35,6 +37,32 @@ let () =
      location, so it works both installed and from the build tree. *)
   let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
+
+  (* Forward the terminal to the page: every line typed here is displayed in
+     <pre id="out"> by the [show] function that app.ml registered on the global
+     object.
+
+     [input_line] blocks, so it runs on its own thread. The webview must only
+     be touched from the UI thread (the one that called [run]), so the JS call
+     goes through [dispatch] rather than being evaluated directly. *)
+  Printf.printf "type a message and press <Enter> to display it in the window\n%!";
+  let _ =
+    Thread.create
+      (fun () ->
+        try
+          while true do
+            let line = input_line stdin in
+            (* [show] only exists once app.js has run its DOMContentLoaded
+               handler; guard against a message typed before the page loads. *)
+            let js =
+              Printf.sprintf "if (typeof show === 'function') show(%s);"
+                (Utils.js_quote line)
+            in
+            Webview.dispatch w (fun w -> Webview.eval w js)
+          done
+        with End_of_file -> ())
+      ()
+  in
 
   Webview.run w;
   Webview.destroy w
