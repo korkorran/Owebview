@@ -8,12 +8,25 @@
 Powered by [webview](https://github.com/webview/webview).
 All the power of web technologies in your app. No Electron, no bundler: create a window, drop in some HTML, and you have an app.
 
-## Exemples
+## Examples
 
-| Rainfall (D3.js) | Geometry shapes (three.js) | Timer |
-____
-| ![Rainfall chart](./doc/screenshots/d3.png) | ![3D shapes](./doc/screenshots/three.png) | ![Timer](./doc/screenshots/timer.png)|
-| `dune exec examples/d3/d3.exe` | `dune exec examples/three/three.exe` | `dune exec examples/timer/timer_posix.exe` |
+<table align="center">
+  <tr>
+    <td align="center"><b>Rainfall (D3.js)</b></td>
+    <td align="center"><b>Geometry shapes (three.js)</b></td>
+    <td align="center"><b>Timer</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/korkorran/Owebview/main/doc/screenshots/d3.png" width="260" alt="Rainfall chart"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/korkorran/Owebview/main/doc/screenshots/three.png" width="260" alt="3D shapes"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/korkorran/Owebview/main/doc/screenshots/timer.png" width="260" alt="Timer"></td>
+  </tr>
+  <tr>
+    <td align="center"><code>dune exec examples/d3/d3.exe</code></td>
+    <td align="center"><code>dune exec examples/three/three.exe</code></td>
+    <td align="center"><code>dune exec examples/timer/timer_posix.exe</code></td>
+  </tr>
+</table>
 
 Build a tiny native desktop window with a web UI, straight from OCaml — 
 
