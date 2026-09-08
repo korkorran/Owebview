@@ -28,8 +28,9 @@ All the power of web technologies in your app. No Electron, no bundler: create a
   </tr>
 </table>
 
-Build a tiny native desktop window with a web UI, straight from OCaml — 
+## Minimal code of random number GUI
 
+Build a tiny native desktop window with a web UI, straight from OCaml — 
 
 Here's the whole thing:
 
@@ -38,30 +39,72 @@ let () =
   let w = Webview.create () in
   Webview.set_title w "My first owebview app";
   Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
+
+  Webview.bind w "random" (fun id req ->
+      Printf.printf "binding called <random>: id=%s req=%s\n%!" id req;
+      let result = string_of_int (Random.int 100)
+      in
+      Webview.return w id ~error:false ~result);
+
   Webview.set_html w
     {|<!doctype html>
       <html>
         <body style="font-family: system-ui; text-align: center">
           <h1>Hello from OCaml 👋</h1>
-          <p>Rendered by webview.</p>
+          <p>Click the button to get a random number:</p>
+          <button id="btn">Get random number</button>
+          <p id="result"></p>
+          <script>
+            const btn = document.getElementById("btn");
+            const result = document.getElementById("result");
+            btn.addEventListener("click", () => {
+              window.random().then((n) => {
+                result.textContent = `Random number: ${n}`;
+              });
+            });
+          </script>
         </body>
       </html>|};
+    
   Webview.run w;
   Webview.destroy w
 ```
 
+Once HTML rendering works, the fun part is the OCaml ↔ JavaScript bridge: `Webview.bind w random (...)` expose `window.random()` to the page; the result is a JS Promise. All the computation of random numbers is done by the OCaml back-end. While random number generation can be done in JavaScript, it gives an example of how to call native functions from the window.
+
+Other handy entry points: `Webview.navigate` (load a URL or a local `file://`
+page), `Webview.init` / `Webview.eval` (inject JavaScript), and
+`Webview.terminate` (close the window from code). The full API lives in
+[`lib/webview.mli`](lib/webview.mli).
+
+## Install and use in your own project
+
+If your machine is on *Windows*, you must install the Microsoft Webview2 package before any OPAM installation,  :
+```sh
+nuget install Microsoft.Web.WebView2
+```
+Otherwise, on unix system, all the dependancies are installed via OPAM.
+```sh
+opam install owebview
+```
+
+Then depend on it from your `dune` file:
+
+```dune
+(executable
+ (name main)
+ (libraries owebview))
+```
+
 ## See it run
 
-Clone the repo and launch the bundled example, `hellowv`:
+Clone the repo and launch one of the bundled example, for instance `hellowv`:
 
 ```sh
 git clone https://github.com/korkorran/Owebview.git
 cd Owebview
 ```
-on Windows :
-```sh
-nuget install Microsoft.Web.WebView2
-```
+
 ```sh
 opam install . --deps-only
 dune exec examples/hellowv/hellowv.exe
@@ -80,43 +123,6 @@ into OCaml.
 > example (`--uninstall` removes it); see `Webview.set_app_id` in
 > [`lib/webview.mli`](lib/webview.mli) for the details.
 
-## Use it in your own project
-
-Pin the library with opam (the `webview.h` header is vendored, nothing to fetch):
-
-```sh
-opam pin add owebview https://github.com/korkorran/Owebview.git
-```
-
-Then depend on it from your `dune` file:
-
-```dune
-(executable
- (name main)
- (libraries owebview))
-```
-
-Drop the example above into `main.ml` and run `dune exec ./main.exe`. That's it.
-
-## A little further
-
-Once HTML rendering works, the fun part is the OCaml ↔ JavaScript bridge:
-
-```ocaml
-(* Expose window.add(a, b) to the page; the result is a JS Promise. *)
-Webview.bind w "add" (fun id req ->
-    let result =
-      match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
-      | Some n -> string_of_int n
-      | None -> "null"
-    in
-    Webview.return w id ~error:false ~result)
-```
-
-Other handy entry points: `Webview.navigate` (load a URL or a local `file://`
-page), `Webview.init` / `Webview.eval` (inject JavaScript), and
-`Webview.terminate` (close the window from code). The full API lives in
-[`lib/webview.mli`](lib/webview.mli).
 
 ## Native dependencies
 
