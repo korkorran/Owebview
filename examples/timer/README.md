@@ -78,7 +78,6 @@ Webview.dispatch w (fun w -> Webview.eval w "/* JS to run on the UI thread */")
 These functions are safe to call from a thread other than the webview loop:
 
 - `Webview.return`
-- `Webview.terminate`
 - `Webview.dispatch`
 
 A complete, working example is

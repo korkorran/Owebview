@@ -28,6 +28,12 @@ All the power of web technologies in your app. No Electron, no bundler: create a
   </tr>
 </table>
 
+## Learn about Owebview
+
+Please refer to the [tutorial](./tutorial/README.md)
+
+You can also check the [documentation](https://korkorran.github.io/Owebview/owebview/index.html)
+
 ## Minimal code of random number GUI
 
 Build a tiny native desktop window with a web UI, straight from OCaml — 
