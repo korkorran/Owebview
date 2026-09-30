@@ -16,6 +16,8 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 | `lib/config/discover.ml` | Detects platform C++ flags at build time (dune-configurator) |
 | `desktop/icon.mli` / `.ml` | `owebview.desktop`: `Webview_desktop.Icon`, the application icon and id |
 | `desktop/icon_stubs.cpp` | Direct Cocoa/GTK/Win32 calls; includes no part of `vendor/webview.h` |
+| `desktop/dialog.mli` / `.ml` | `Webview_desktop.Dialog`: native confirm and file/folder pickers |
+| `desktop/dialog_stubs.cpp` | `NSAlert`/`NSOpenPanel`, `GtkMessageDialog`/`GtkFileChooserDialog`, `MessageBoxW`/`IFileOpenDialog` |
 | `desktop/config/discover.ml` | Its own, narrower flags: no WebKit, no WebKitGTK, no WebView2 SDK |
 | `examples/hellowv/hellowv.ml` | Minimal window with two JS → OCaml bindings |
 | `examples/hellowv/utils.ml` | Example-local helper (host OS detection) |

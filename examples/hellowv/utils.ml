@@ -18,3 +18,25 @@ let detect_os () =
        | "Linux" -> "Linux"
        | "" -> "Unix"
        | other -> other)
+
+(* Quote a string as a JSON string literal, for [Webview.return ~result].
+
+   [Printf]'s "%S" is deliberately not used here: it escapes bytes >= 0x80 as
+   a decimal "\ddd", which JSON does not accept — JSON.parse then rejects the
+   whole reply and the page sees a failed promise instead of its answer. File
+   paths with accented characters are common enough for that to matter. JSON
+   strings are UTF-8, so raw bytes are passed through and only the characters
+   that would close the literal or break the line get escaped. *)
+let json_quote s =
+  let b = Buffer.create (String.length s + 2) in
+  Buffer.add_char b '"';
+  String.iter
+    (function
+      | '"' -> Buffer.add_string b "\\\""
+      | '\\' -> Buffer.add_string b "\\\\"
+      | c when Char.code c < 0x20 || Char.code c = 0x7f ->
+          Buffer.add_string b (Printf.sprintf "\\u%04x" (Char.code c))
+      | c -> Buffer.add_char b c)
+    s;
+  Buffer.add_char b '"';
+  Buffer.contents b

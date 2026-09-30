@@ -102,14 +102,27 @@ Then depend on it from your `dune` file:
  (libraries owebview))
 ```
 
-Native desktop integration — the application icon today, native dialogs and
-menu bars later — lives in a companion library, so that `owebview` itself stays
-a thin binding to the webview C API. Add it when you need it:
+Native desktop integration — the application icon, and the system's own modal
+dialogs — lives in a companion library, so that `owebview` itself stays a thin
+binding to the webview C API. Add it when you need it:
 
 ```dune
 (executable
  (name main)
  (libraries owebview owebview.desktop))
+```
+
+It currently provides `Webview_desktop.Icon` (the Dock/taskbar icon and the
+application id) and `Webview_desktop.Dialog`:
+
+```ocaml
+(* From a binding callback, i.e. on the UI thread. *)
+if Webview_desktop.Dialog.confirm w ~title:"Quit" "Discard changes?" then
+  Webview.terminate w;
+
+match Webview_desktop.Dialog.open_file w () with
+| Some path -> print_endline path
+| None -> print_endline "cancelled"
 ```
 
 ## See it run
@@ -126,8 +139,9 @@ opam install . --deps-only
 dune exec examples/hellowv/hellowv.exe
 ```
 
-A window pops up with two buttons wired to OCaml: one adds two numbers, the other
-reports your OS. The example loads its UI from real `.html` / `.css` / `.js`
+A window pops up with three buttons wired to OCaml: one adds two numbers, one
+reports your OS, and one opens the system's native file browser and shows you
+the path you picked. The example loads its UI from real `.html` / `.css` / `.js`
 files in [`examples/hellowv/web/`](examples/hellowv/web/) — peek at
 [`examples/hellowv/hellowv.ml`](examples/hellowv/hellowv.ml) to see how JavaScript calls back
 into OCaml.

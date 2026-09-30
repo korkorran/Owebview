@@ -1,5 +1,6 @@
-// The bindings exposed from OCaml (see hello.ml) are available as
-// window.add(...) and window.os_type(), each returning a Promise.
+// The bindings exposed from OCaml (see hellowv.ml) are available as
+// window.add(...), window.os_type() and window.pick_file(), each returning a
+// Promise.
 
 const out = document.querySelector("#out");
 
@@ -14,3 +15,9 @@ document
 document
   .querySelector("#btn-os")
   .addEventListener("click", () => os_type().then(show));
+
+// pick_file() shows a *native* file browser, driven from OCaml. The promise
+// resolves with the chosen path, or with null when the user cancels.
+document.querySelector("#btn-file").addEventListener("click", () => {
+  pick_file().then((path) => show(path === null ? "(cancelled)" : path));
+});

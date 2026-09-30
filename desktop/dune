@@ -1,14 +1,15 @@
 ; Desktop integration: what a native application needs beyond the web view
-; itself. These entry points are not part of the webview C API — they call
-; into Cocoa, GTK and Win32 directly — so they live in their own library
-; rather than in owebview, which stays a thin binding to vendor/webview.h.
+; itself — the application icon and id, and the system's own modal dialogs.
+; These entry points are not part of the webview C API — they call into
+; Cocoa, GTK and Win32 directly — so they live in their own library rather
+; than in owebview, which stays a thin binding to vendor/webview.h.
 (library
  (name webview_desktop)
  (public_name owebview.desktop)
  (libraries webview)
  (foreign_stubs
   (language cxx)
-  (names icon_stubs)
+  (names icon_stubs dialog_stubs)
   ; -std=c++11 plus any platform cflags (e.g. GTK include paths on Linux) are
   ; detected at build time by config/discover.exe. Note the absence of
   ; -I ../vendor: nothing here includes webview.h.

@@ -15,8 +15,8 @@ Two functions fix that, and they do quite different things:
 
 Both live in `Webview_desktop.Icon`, in a **separate library**: `owebview`
 stays a thin binding to the webview C API, and everything that talks to Cocoa,
-GTK or Win32 directly — the icon today, native dialogs and menu bars later —
-lives alongside it in `owebview.desktop`. So this step needs one more entry in
+GTK or Win32 directly — the icon here, the native dialogs of
+`Webview_desktop.Dialog` — lives alongside it in `owebview.desktop`. So this step needs one more entry in
 your `dune` file:
 
 ```dune

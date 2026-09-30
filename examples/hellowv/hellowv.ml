@@ -52,6 +52,22 @@ let () =
       let result = Printf.sprintf "%S" (Utils.detect_os ()) in
       Webview.return w id ~error:false ~result);
 
+  (* Expose window.pick_file() to JS: open the system file browser and hand the
+     chosen path back to the page, or null if the user cancelled.
+
+     A binding callback runs on the UI thread, which is exactly where a modal
+     dialog has to be shown — so the call belongs here and needs no [dispatch].
+     It blocks until the user answers, and the window behind it is unresponsive
+     meanwhile; that is what "modal" means. See desktop/dialog.mli. *)
+  Webview.bind w "pick_file" (fun id req ->
+      Printf.printf "binding called <pick_file>: id=%s req=%s\n%!" id req;
+      let result =
+        match Webview_desktop.Dialog.open_file w ~title:"Choose a file" () with
+        | Some path -> Utils.json_quote path
+        | None -> "null"
+      in
+      Webview.return w id ~error:false ~result);
+
   (* Load the page from on-disk files (web/) instead of an inline HTML string.
      The CSS and JS referenced with relative paths in index.html are resolved
      relative to that file. We locate the web/ directory from the executable
