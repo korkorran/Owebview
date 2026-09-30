@@ -21,7 +21,8 @@ external raw_add_item : nativeint -> string -> string -> int -> int -> unit
 external raw_add_separator : nativeint -> unit
   = "ocaml_webview_menu_add_separator"
 
-external raw_install : nativeint -> nativeint -> unit
+(* window, browser controller (only used on Windows), bar *)
+external raw_install : nativeint -> nativeint -> nativeint -> unit
   = "ocaml_webview_menu_install"
 
 type modifier = Cmd | Ctrl | Alt | Shift
@@ -80,4 +81,6 @@ let set w menus =
   let bar = raw_create_bar () in
   List.iter (fun (label, items) -> add_items (raw_add_submenu bar label) items)
     menus;
-  raw_install (Webview.get_window w) bar
+  raw_install (Webview.get_window w)
+    (Webview.get_native_handle w Webview.Browser_controller)
+    bar

@@ -2,7 +2,11 @@
 ; for the desktop-integration stubs and writes them to sexp files consumed by
 ; ../dune. These stubs talk to Cocoa, GTK and Win32 directly and never include
 ; vendor/webview.h, so the flags here are deliberately narrower than the ones
-; the core library needs: no WebKit, no WebKitGTK, no WebView2 SDK.
+; the core library needs: no WebKit, no WebKitGTK. The one overlap is the
+; WebView2 SDK header on Windows (for the menu accelerators), whose discovery
+; is shared with the core library rather than duplicated.
 (executable
  (name discover)
  (libraries dune-configurator))
+
+(copy_files# ../../lib/config/webview2_sdk.ml)

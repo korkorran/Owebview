@@ -1,11 +1,15 @@
 module C = Configurator.V1
 
-(* Compile/link flags for icon_stubs.cpp and dialog_stubs.cpp.
+(* Compile/link flags for icon_stubs.cpp, dialog_stubs.cpp and menu_stubs.cpp.
 
    Nothing in this library includes vendor/webview.h, so it needs none of the
-   web engines the core library links: no WebKit framework on macOS, no
-   webkit2gtk-4.1 on Linux, and no WebView2 SDK header on Windows. What is left
-   is the plain desktop toolkit of each platform. *)
+   web engines the core library links: no WebKit framework on macOS and no
+   webkit2gtk-4.1 on Linux. What is left is the plain desktop toolkit of each
+   platform -- plus, on Windows, the WebView2 SDK *header*: the menu stubs
+   subscribe to the controller's AcceleratorKeyPressed event, because keyboard
+   input to the page never reaches this process's message loop (see
+   menu_stubs.cpp). Nothing extra is linked for it: the interfaces are reached
+   through the controller pointer the core library already created. *)
 
 (* C++ standard required to compile the stubs, on every platform. *)
 let std_flags = [ "-std=c++11" ]
@@ -98,7 +102,7 @@ let () =
       let cflags, link_flags =
         match system with
         | "macosx" -> (std_flags, macos_link_flags)
-        | "mingw64" -> (mingw_flags, mingw_link_flags)
+        | "mingw64" -> (Webview2_sdk.cflags () @ mingw_flags, mingw_link_flags)
         | _ ->
             let cflags, libs = linux_flags c in
             (* -lstdc++ links the GNU C++ runtime needed by the stub; on macOS

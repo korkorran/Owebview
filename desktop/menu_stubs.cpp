@@ -2,7 +2,9 @@
  *
  * Like the other stubs in this library, nothing here includes
  * vendor/webview.h: the window arrives from OCaml as a nativeint obtained
- * from [Webview.get_window].
+ * from [Webview.get_window], and on Windows the WebView2 controller as one
+ * obtained from [Webview.get_native_handle]. The latter is why this file, and
+ * this file alone, includes the WebView2 SDK header on Windows.
  *
  * The menu is built incrementally rather than marshalled as a tree: OCaml
  * walks its own description and calls create_bar / add_submenu / add_item /
@@ -45,6 +47,10 @@
 #include <gtk/gtk.h>
 #elif defined(_WIN32)
 #include <windows.h>
+
+#include <objbase.h>
+
+#include "WebView2.h"
 #endif
 
 /* Modifier bits, mirroring Webview_desktop.Menu.modifier. */
@@ -188,21 +194,31 @@ static GdkModifierType wv_gdk_mask(int modifiers) {
 static std::map<HWND, WNDPROC> g_prev_wndproc;
 
 /* ---- accelerators ----
- * Windows runs accelerators from the message loop, via TranslateAccelerator,
- * and webview's loop does not call it: run_impl in vendor/webview.h is a bare
- * GetMessage/TranslateMessage/DispatchMessage with no hook of its own, and
- * the same is true of the nested pumps it uses while waiting.
+ * Keystrokes reach us by two routes, depending on where the focus is.
  *
- * So we install a WH_GETMESSAGE hook on *this thread only*. It is handed every
- * message the loop retrieves, before it is dispatched, which is exactly where
- * accelerator translation belongs. A handled keystroke is blanked to WM_NULL
- * so the loop does not also deliver it to the focused control -- otherwise
- * Ctrl-O would both run the menu command and type an "o" into the page.
+ * 1. The web view has the focus -- the usual case. WebView2 renders the page
+ *    in its own browser process, and the window that receives the keyboard
+ *    belongs to *that* process: its messages never enter our message loop, so
+ *    nothing on our side can see them, let alone translate them. WebView2
+ *    offers ICoreWebView2Controller::add_AcceleratorKeyPressed for exactly
+ *    this, raised on our UI thread for every key-down that combines with a
+ *    modifier. We match it against the same ACCEL entries that feed the
+ *    Win32 table (g_accel_entries), mark it Handled so the page does not also
+ *    see it, and post the WM_COMMAND an accelerator would have sent.
  *
- * The alternative, ICoreWebView2Controller::add_AcceleratorKeyPressed, is the
- * WebView2-sanctioned route but only fires while the web view has focus, and
- * it would drag the WebView2 SDK headers back into this library -- which is
- * precisely what keeping it independent of vendor/webview.h avoids.
+ * 2. The host window has the focus (after clicking the menu bar, say). Then
+ *    the keystroke does go through our loop, and Windows runs accelerators
+ *    from there, via TranslateAccelerator -- which webview's loop does not
+ *    call: run_impl in vendor/webview.h is a bare
+ *    GetMessage/TranslateMessage/DispatchMessage with no hook of its own, and
+ *    the same is true of the nested pumps it uses while waiting. So we install
+ *    a WH_GETMESSAGE hook on *this thread only*. It is handed every message
+ *    the loop retrieves, before it is dispatched, which is exactly where
+ *    accelerator translation belongs. A handled keystroke is blanked to
+ *    WM_NULL so the loop does not also deliver it to the focused control.
+ *
+ * The two never both fire for one keystroke: each covers the focus the other
+ * cannot see.
  */
 
 static std::map<HWND, HACCEL> g_accel_tables;
@@ -226,6 +242,125 @@ static void wv_destroy_retired_accels() {
  * install. Menus are built one at a time on the UI thread, so a single
  * pending list is enough. */
 static std::vector<ACCEL> g_pending_accels;
+
+/* The installed entries of each window, kept alongside its HACCEL so that
+ * route 1 can match against them without a CopyAcceleratorTable round trip. */
+static std::map<HWND, std::vector<ACCEL>> g_accel_entries;
+
+/* The command bound to [vk] under the modifiers currently held, or -1. Like
+ * TranslateAccelerator, the modifiers must match exactly: Ctrl+O does not
+ * fire on Ctrl+Shift+O. */
+static int wv_find_accel(HWND hwnd, UINT vk) {
+  auto it = g_accel_entries.find(hwnd);
+  if (it == g_accel_entries.end())
+    return -1;
+  bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+  bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+  bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+  for (const ACCEL &entry : it->second) {
+    if (entry.key == vk && ((entry.fVirt & FCONTROL) != 0) == ctrl &&
+        ((entry.fVirt & FALT) != 0) == alt &&
+        ((entry.fVirt & FSHIFT) != 0) == shift)
+      return entry.cmd;
+  }
+  return -1;
+}
+
+/* Spelled out rather than taken from the SDK, as vendor/webview.h does:
+ * WebView2.h only declares its IIDs, and no mingw import library defines
+ * them. */
+static constexpr IID wv_IID_AcceleratorKeyPressedEventHandler{
+    0xb29c7e28,
+    0xfa79,
+    0x41a8,
+    {0x8e, 0x44, 0x65, 0x81, 0x1c, 0x76, 0xdc, 0xb2}};
+
+/* Route 1: the controller's AcceleratorKeyPressed handler, one per window. */
+class wv_accelerator_handler final
+    : public ICoreWebView2AcceleratorKeyPressedEventHandler {
+public:
+  explicit wv_accelerator_handler(HWND hwnd) : m_hwnd(hwnd) {}
+
+  ULONG STDMETHODCALLTYPE AddRef() override { return ++m_refs; }
+
+  ULONG STDMETHODCALLTYPE Release() override {
+    ULONG refs = --m_refs;
+    if (refs == 0)
+      delete this;
+    return refs;
+  }
+
+  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppv) override {
+    if (ppv == nullptr)
+      return E_POINTER;
+    if (IsEqualIID(riid, IID_IUnknown) ||
+        IsEqualIID(riid, wv_IID_AcceleratorKeyPressedEventHandler)) {
+      *ppv = static_cast<ICoreWebView2AcceleratorKeyPressedEventHandler *>(this);
+      AddRef();
+      return S_OK;
+    }
+    *ppv = nullptr;
+    return E_NOINTERFACE;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  Invoke(ICoreWebView2Controller *sender,
+         ICoreWebView2AcceleratorKeyPressedEventArgs *args) override {
+    (void)sender;
+    COREWEBVIEW2_KEY_EVENT_KIND kind;
+    if (FAILED(args->get_KeyEventKind(&kind)) ||
+        (kind != COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN &&
+         kind != COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN))
+      return S_OK;
+    UINT vk = 0;
+    if (FAILED(args->get_VirtualKey(&vk)))
+      return S_OK;
+    int command = wv_find_accel(m_hwnd, vk);
+    if (command < 0)
+      return S_OK;
+    args->put_Handled(TRUE);
+    /* Posted, not sent: the menu callback then runs from our own loop, once
+     * WebView2 has returned from this event, rather than nested inside it --
+     * where a modal dialog or a Menu.set would be reentering the browser. */
+    PostMessageW(m_hwnd, WM_COMMAND, MAKEWPARAM(command, 1), 0);
+    return S_OK;
+  }
+
+private:
+  HWND m_hwnd;
+  ULONG m_refs = 1;
+};
+
+/* The controller each window's handler is registered on, AddRef'd for as long
+ * as the registration lasts, and the token to remove it with. */
+struct wv_key_subscription {
+  ICoreWebView2Controller *controller;
+  EventRegistrationToken token;
+};
+static std::map<HWND, wv_key_subscription> g_key_subscriptions;
+
+static void wv_subscribe_keys(HWND hwnd, ICoreWebView2Controller *controller) {
+  if (controller == nullptr ||
+      g_key_subscriptions.find(hwnd) != g_key_subscriptions.end())
+    return;
+  wv_accelerator_handler *handler = new wv_accelerator_handler(hwnd);
+  EventRegistrationToken token;
+  if (SUCCEEDED(controller->add_AcceleratorKeyPressed(handler, &token))) {
+    controller->AddRef();
+    g_key_subscriptions[hwnd] = wv_key_subscription{controller, token};
+  }
+  /* The controller holds its own reference from here on. */
+  handler->Release();
+}
+
+static void wv_unsubscribe_keys(HWND hwnd) {
+  auto it = g_key_subscriptions.find(hwnd);
+  if (it == g_key_subscriptions.end())
+    return;
+  it->second.controller->remove_AcceleratorKeyPressed(it->second.token);
+  it->second.controller->Release();
+  g_key_subscriptions.erase(it);
+}
 
 /* ACCEL entries are virtual-key codes. For letters and digits the VK code is
  * the uppercase ASCII value; anything else goes through the keyboard layout. */
@@ -252,7 +387,8 @@ static LRESULT CALLBACK wv_getmsg_hook(int code, WPARAM wp, LPARAM lp) {
                                                   g_accel_tables.end());
       for (auto &entry : tables) {
         /* TranslateAccelerator matches when msg->hwnd is the window or any
-         * descendant of it, which covers the WebView2 child windows. */
+         * descendant of it -- among those owned by this thread, that is; the
+         * page's input window is not one of them (route 1 above). */
         if (entry.second != nullptr &&
             TranslateAcceleratorW(entry.first, entry.second, msg)) {
           msg->message = WM_NULL;
@@ -295,6 +431,8 @@ static LRESULT CALLBACK wv_menu_wndproc(HWND hwnd, UINT msg, WPARAM wp,
         DestroyAcceleratorTable(accel->second);
       g_accel_tables.erase(accel);
     }
+    g_accel_entries.erase(hwnd);
+    wv_unsubscribe_keys(hwnd);
     wv_destroy_retired_accels();
     if (g_accel_tables.empty() && g_msg_hook != nullptr) {
       UnhookWindowsHookEx(g_msg_hook);
@@ -521,9 +659,13 @@ CAMLprim value ocaml_webview_menu_add_separator(value vparent) {
 
 /* Install the finished bar. On macOS it becomes the application's main menu
  * and the window is ignored; elsewhere it belongs to that one window. */
-CAMLprim value ocaml_webview_menu_install(value vwindow, value vbar) {
-  CAMLparam2(vwindow, vbar);
+CAMLprim value ocaml_webview_menu_install(value vwindow, value vcontroller,
+                                          value vbar) {
+  CAMLparam3(vwindow, vcontroller, vbar);
   void *window = wv_ptr_of_val(vwindow);
+  /* The ICoreWebView2Controller on Windows; unused elsewhere. */
+  void *controller = wv_ptr_of_val(vcontroller);
+  (void)controller;
   void *bar = wv_ptr_of_val(vbar);
   if (bar == nullptr)
     CAMLreturn(Val_unit);
@@ -606,9 +748,14 @@ CAMLprim value ocaml_webview_menu_install(value vwindow, value vbar) {
         previous_accel->second != nullptr)
       g_retired_accels.push_back(previous_accel->second);
     g_accel_tables[hwnd] = accel;
+    g_accel_entries[hwnd] = g_pending_accels;
     if (g_msg_hook == nullptr)
       g_msg_hook = SetWindowsHookExW(WH_GETMESSAGE, wv_getmsg_hook, nullptr,
                                      GetCurrentThreadId());
+    /* And route 1, for when the page has the focus. The handler reads
+     * g_accel_entries at each keystroke, so a reinstall needs no new
+     * registration. */
+    wv_subscribe_keys(hwnd, static_cast<ICoreWebView2Controller *>(controller));
   }
 #endif
   caml_acquire_runtime_system();

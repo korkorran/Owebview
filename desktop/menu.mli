@@ -48,15 +48,19 @@
       supported} — it replaced [GtkMenuBar] with the [GMenu] model — and
       {!set} is a no-op there.
     - {b Windows}: the bar belongs to the window, and its window procedure is
-      subclassed to receive [WM_COMMAND]. Accelerators work, but by a route
-      worth knowing about: Windows runs them from the message loop, via
-      [TranslateAccelerator], and webview's loop does not call it — so {!set}
-      installs a [WH_GETMESSAGE] hook on {b the calling thread} and translates
-      there. Two consequences. The hook belongs to the thread that called
-      {!set}, so call it from the UI thread like everything else here. And a
-      menu shortcut takes precedence over the page: the hook sees the
-      keystroke before it is dispatched, and swallows the ones it claims, so
-      a page listening for Ctrl-O will not also see it.
+      subclassed to receive [WM_COMMAND]. Accelerators take two routes,
+      because WebView2 runs the page in a separate browser process whose
+      input window never feeds this process's message loop. While the page
+      has the focus, {!set} listens to the controller's
+      [AcceleratorKeyPressed] event. While the host window has it, it
+      installs a [WH_GETMESSAGE] hook on {b the calling thread} that runs
+      [TranslateAccelerator], which webview's own loop does not call. Two
+      consequences. Both belong to the thread that called {!set}, so call it
+      from the UI thread like everything else here. And a menu shortcut takes
+      precedence over the page: a keystroke it claims is swallowed, so a page
+      listening for Ctrl-O will not also see it. This is also why
+      [owebview.desktop] needs the WebView2 SDK header to build on Windows,
+      just as [owebview] does.
     - Any other backend: a no-op. *)
 
 (** A keyboard modifier. *)
