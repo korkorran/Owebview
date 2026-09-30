@@ -4,7 +4,7 @@
  (flags )
  (foreign_stubs
   (language cxx)
-  (names webview_stubs)
+  (names webview_stubs icon_stubs)
   ; extra_deps forces dune to copy the vendored header into the build tree so
   ; the -I below (build-relative) can find it.
   (extra_deps %{workspace_root}/vendor/webview.h)

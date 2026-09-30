@@ -5,7 +5,7 @@ let () =
 
   let icon = Filename.concat (Webview.Utils.web_dir ()) "rain.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
 
   (* The chart is rendered entirely in the page with D3.js; no binding is
      needed. The web/ directory (with the vendored d3.v7.min.js) is located

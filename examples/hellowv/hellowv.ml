@@ -9,7 +9,7 @@ let () =
      Wayland app_id, which desktop shells match against an installed
      .desktop file to pick a Dock icon — see install-desktop-entry.sh and
      the set_app_id/set_app_icon docs in lib/webview.mli. *)
-  Webview.set_app_id "hellowv";
+  Webview.Icon.set_app_id "hellowv";
 
   let w = Webview.create ~debug:true () in
   Webview.set_title w "Hello from OCaml";
@@ -29,7 +29,7 @@ let () =
      — run ./install-desktop-entry.sh once to see it there too. *)
   let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
 
   (* Native handles (opaque pointers, for platform-specific FFI such as a file
      dialog). 0n means unavailable. *)

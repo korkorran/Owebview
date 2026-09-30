@@ -39,7 +39,7 @@ The whole binding is the {!module:Webview} module. A tour of it:
 - {b Content}: {!Webview.navigate}, {!Webview.set_html}, {!Webview.eval}
 - {b JavaScript bridge}: {!Webview.bind}, {!Webview.unbind}, {!Webview.return}
 - {b Threading}: {!Webview.dispatch}
-- {b Native handles & icon}: {!Webview.get_native_handle}, {!Webview.set_app_icon}
+- {b Native handles & icon}: {!Webview.get_native_handle}, {!Webview.Icon.set_app_icon}
 - {b Locating on-disk assets}: {!Webview.Utils.web_dir}
 
 {1 Native dependencies}

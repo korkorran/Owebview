@@ -123,10 +123,10 @@ files in [`examples/hellowv/web/`](examples/hellowv/web/) — peek at
 into OCaml.
 
 > **Linux Dock icon**: on native Wayland (GNOME's default), the Dock ignores
-> `Webview.set_app_icon` — it resolves an app's icon from an installed
+> `Webview.Icon.set_app_icon` — it resolves an app's icon from an installed
 > `.desktop` file, not from window properties. Run
 > `examples/hellowv/install-desktop-entry.sh` once to install one for the
-> example (`--uninstall` removes it); see `Webview.set_app_id` in
+> example (`--uninstall` removes it); see `Webview.Icon.set_app_id` in
 > [`lib/webview.mli`](lib/webview.mli) for the details.
 
 

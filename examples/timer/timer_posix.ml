@@ -5,7 +5,7 @@ let () =
 
   let icon = Filename.concat (Webview.Utils.web_dir ()) "timer.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
 
   (* Expose window.print_time(seconds): the page's button calls it and we print
      the elapsed time on the main process's console (stdout). [req] is a JSON

@@ -42,6 +42,6 @@ next reading once you are done here.
 | 03 | [The JavaScript ↔ OCaml bridge](03-js-bridge.md) | `Webview.bind` to expose OCaml functions as `window.f()` promises, `Webview.return` to answer them, `Webview.eval` to call into the page, `Webview.dispatch` to do it safely from another thread — and the matching `dune` setup. |
 | 04 | [Asynchronous backend with Lwt](04-async-lwt.md) | Sharing the main thread between `Webview.run` and `Lwt_main.run`, wrapping bindings into Lwt handlers, and driving the page from a concurrent backend. Based on [`examples/timer/timer_lwt.ml`](../examples/timer/timer_lwt.ml). |
 | 05 | [A 100% OCaml application](05-full-ocaml.md) | Writing the frontend in OCaml too, compiled with `js_of_ocaml` (`(modes js)`) and [Brr](https://erratique.ch/software/brr): calling bindings and registering JS-visible functions from OCaml. Based on [`examples/js_of_ocaml/`](../examples/js_of_ocaml/). |
-| 06 | [Bonus: a Dock icon](06-app-icon.md) | `Webview.set_app_icon` on Windows, macOS and GTK, its timing constraints, and `Webview.set_app_id` plus a `.desktop` file for Wayland-based desktops. |
+| 06 | [Bonus: a Dock icon](06-app-icon.md) | `Webview.Icon.set_app_icon` on Windows, macOS and GTK, its timing constraints, and `Webview.Icon.set_app_id` plus a `.desktop` file for Wayland-based desktops. |
 
 Ready? Start with [step 01](01-first-window.md).
