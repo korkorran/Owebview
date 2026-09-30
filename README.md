@@ -102,9 +102,10 @@ Then depend on it from your `dune` file:
  (libraries owebview))
 ```
 
-Native desktop integration — the application icon, and the system's own modal
-dialogs — lives in a companion library, so that `owebview` itself stays a thin
-binding to the webview C API. Add it when you need it:
+Native desktop integration — the application icon, the system's own modal
+dialogs, and the native menu bar — lives in a companion library, so that
+`owebview` itself stays a thin binding to the webview C API. Add it when you
+need it:
 
 ```dune
 (executable
@@ -113,7 +114,7 @@ binding to the webview C API. Add it when you need it:
 ```
 
 It currently provides `Webview_desktop.Icon` (the Dock/taskbar icon and the
-application id) and `Webview_desktop.Dialog`:
+application id), `Webview_desktop.Dialog` and `Webview_desktop.Menu`:
 
 ```ocaml
 (* From a binding callback, i.e. on the UI thread. *)
@@ -123,6 +124,17 @@ if Webview_desktop.Dialog.confirm w ~title:"Quit" "Discard changes?" then
 match Webview_desktop.Dialog.open_file w () with
 | Some path -> print_endline path
 | None -> print_endline "cancelled"
+```
+
+```ocaml
+(* The menu bar, installed once the app is active. *)
+Webview.dispatch w (fun w ->
+    Webview_desktop.Menu.set w
+      [
+        ("MyApp", [ Menu.item "Quit" ~key:'q' ~modifiers:[ Cmd ]
+                      (fun () -> Webview.terminate w) ]);
+        ("File",  [ Menu.item "Open…" ~key:'o' ~modifiers:[ Cmd ] pick_file ]);
+      ])
 ```
 
 ## See it run

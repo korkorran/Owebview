@@ -52,21 +52,63 @@ let () =
       let result = Printf.sprintf "%S" (Utils.detect_os ()) in
       Webview.return w id ~error:false ~result);
 
-  (* Expose window.pick_file() to JS: open the system file browser and hand the
-     chosen path back to the page, or null if the user cancelled.
+  (* The native file browser, shared by the binding and the menu item below.
+     Both callers already run on the UI thread, which is where a modal dialog
+     has to be shown, so neither needs a [dispatch]: the call blocks until the
+     user answers and the window behind it is unresponsive meanwhile — that is
+     what "modal" means. See desktop/dialog.mli. *)
+  let choose_file () =
+    Webview_desktop.Dialog.open_file w ~title:"Choose a file" ()
+  in
 
-     A binding callback runs on the UI thread, which is exactly where a modal
-     dialog has to be shown — so the call belongs here and needs no [dispatch].
-     It blocks until the user answers, and the window behind it is unresponsive
-     meanwhile; that is what "modal" means. See desktop/dialog.mli. *)
+  (* Expose window.pick_file() to JS: hand the chosen path back to the page,
+     or null if the user cancelled. *)
   Webview.bind w "pick_file" (fun id req ->
       Printf.printf "binding called <pick_file>: id=%s req=%s\n%!" id req;
       let result =
-        match Webview_desktop.Dialog.open_file w ~title:"Choose a file" () with
+        match choose_file () with
         | Some path -> Utils.json_quote path
         | None -> "null"
       in
       Webview.return w id ~error:false ~result);
+
+  (* Show a value in the page's <pre id="out">, through the [show] function
+     app.js puts on the global object. *)
+  let show_in_page w text =
+    Webview.eval w
+      (Printf.sprintf "if (typeof show === 'function') show(%s);"
+         (Utils.json_quote text))
+  in
+
+  (* A native menu bar, doing from the system menu what the buttons do from
+     the page. Installed from a [dispatch] callback because on macOS the
+     application only has a menu bar once it is active, which happens after
+     [run] starts — the same timing constraint as the Dock icon above.
+
+     Menu callbacks run on the UI thread, so they can drive the webview
+     directly. Note the macOS convention the first entry relies on: the system
+     draws it with the application's own name, whatever title we give it, so
+     that is where Quit belongs. *)
+  Webview.dispatch w (fun w ->
+      let module Menu = Webview_desktop.Menu in
+      Menu.set w
+        [
+          ( "hellowv",
+            [
+              Menu.item "Quit" ~key:'q' ~modifiers:[ Menu.Cmd ] (fun () ->
+                  Webview.terminate w);
+            ] );
+          ( "File",
+            [
+              Menu.item "Open…" ~key:'o' ~modifiers:[ Menu.Cmd ] (fun () ->
+                  match choose_file () with
+                  | Some path -> show_in_page w path
+                  | None -> show_in_page w "(cancelled)");
+              Menu.separator;
+              Menu.item "OS type" (fun () ->
+                  show_in_page w (Utils.detect_os ()));
+            ] );
+        ]);
 
   (* Load the page from on-disk files (web/) instead of an inline HTML string.
      The CSS and JS referenced with relative paths in index.html are resolved

@@ -8,6 +8,10 @@ const show = (value) => {
   out.textContent = value;
 };
 
+// OCaml drives this one through Webview.eval (the File menu does, see
+// hellowv.ml), so it has to be reachable by name from the global object.
+window.show = show;
+
 document
   .querySelector("#btn-add")
   .addEventListener("click", () => add(20, 22).then(show));

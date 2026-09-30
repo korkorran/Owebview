@@ -18,6 +18,8 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 | `desktop/icon_stubs.cpp` | Direct Cocoa/GTK/Win32 calls; includes no part of `vendor/webview.h` |
 | `desktop/dialog.mli` / `.ml` | `Webview_desktop.Dialog`: native confirm and file/folder pickers |
 | `desktop/dialog_stubs.cpp` | `NSAlert`/`NSOpenPanel`, `GtkMessageDialog`/`GtkFileChooserDialog`, `MessageBoxW`/`IFileOpenDialog` |
+| `desktop/menu.mli` / `.ml` | `Webview_desktop.Menu`: the native menu bar, with accelerators |
+| `desktop/menu_stubs.cpp` | `NSMenu` (runtime-synthesised action target), `GtkMenuBar` + accel group, `HMENU` + wndproc subclass + `WH_GETMESSAGE` hook for accelerators |
 | `desktop/config/discover.ml` | Its own, narrower flags: no WebKit, no WebKitGTK, no WebView2 SDK |
 | `examples/hellowv/hellowv.ml` | Minimal window with two JS → OCaml bindings |
 | `examples/hellowv/utils.ml` | Example-local helper (host OS detection) |
