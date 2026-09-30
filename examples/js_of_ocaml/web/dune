@@ -1,5 +1,6 @@
 (executable
  (name app)
+ (optional)
  (libraries brr)
  (js_of_ocaml
   (flags
@@ -10,6 +11,7 @@
 
 (rule
  (targets app.js)
+ (enabled_if %{lib-available:brr})
  (deps app.bc.js)
  (action
   (copy %{deps} %{targets})))

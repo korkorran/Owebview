@@ -37,7 +37,9 @@ let mingw_flags = [ "-std=c++14" ]
    being a g++-driver option. *)
 let mingw_link_flags =
   [
+    "-link";
     "-static-libgcc";
+    "-link";
     "-static-libstdc++";
     "-lstdc++";
     "-lole32";

@@ -32,7 +32,7 @@ let mingw_flags = [ "-std=c++14";  ]
    done here because it cannot be tested from a non-Windows host, and a
    toolchain built with posix threads may then also need "-lwinpthread". *)
 let mingw_link_flags =
-  [ "-static-libgcc"; "-static-libstdc++"; "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
+  [ "-link"; "-static-libgcc"; "-link"; "-static-libstdc++"; "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 
 (* --- WebView2 SDK header discovery (Windows/mingw) --------------------------
    webview.h includes "WebView2.h", which ships in the Microsoft.Web.WebView2

@@ -1,5 +1,13 @@
 # Full OCaml application
 
+## Warning
+
+You must install Brr to run this application
+```
+opam install brr
+````
+Otherwise the app.js will not be built and the application will fail.
+
 Ocaml is able to compile to javascript using [js_of_ocaml](https://github.com/ocsigen/js_of_ocaml/). This can be automated in dune by adding [(modes js)](https://dune.readthedocs.io/en/stable/jsoo.html) in the executable rule.
 
 
