@@ -9,10 +9,7 @@ let macos_link_flags =
 
 let mingw_flags = [ "-std=c++14";  ]
 
-(* windowscodecs (WIC), gdi32 and uuid are pulled in by set_app_icon, which
-   decodes the image file itself and builds the HICON.
-
-   -static-libgcc and -static-libstdc++ fold the GCC runtime into the
+(* -static-libgcc and -static-libstdc++ fold the GCC runtime into the
    executable instead of leaving it to find libgcc_s_seh-1.dll,
    libstdc++-6.dll and libwinpthread-1.dll beside itself at startup. Without
    them a program linked against this library is not redistributable on its
@@ -35,7 +32,7 @@ let mingw_flags = [ "-std=c++14";  ]
    done here because it cannot be tested from a non-Windows host, and a
    toolchain built with posix threads may then also need "-lwinpthread". *)
 let mingw_link_flags =
-  [ "-static-libgcc"; "-static-libstdc++"; "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion"; "-lwindowscodecs"; "-lgdi32"; "-luuid" ]
+  [ "-static-libgcc"; "-static-libstdc++"; "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 
 (* --- WebView2 SDK header discovery (Windows/mingw) --------------------------
    webview.h includes "WebView2.h", which ships in the Microsoft.Web.WebView2

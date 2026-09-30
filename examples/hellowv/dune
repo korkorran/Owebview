@@ -1,6 +1,6 @@
 (executable
  (name hellowv)
- (libraries webview unix))
+ (libraries webview webview_desktop unix))
 
 ; Stage the web/ assets next to the built binary (_build/.../examples/web/) so
 ; the example is self-contained in the build tree — without installing them

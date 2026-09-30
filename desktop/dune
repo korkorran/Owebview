@@ -1,0 +1,30 @@
+; Desktop integration: what a native application needs beyond the web view
+; itself. These entry points are not part of the webview C API — they call
+; into Cocoa, GTK and Win32 directly — so they live in their own library
+; rather than in owebview, which stays a thin binding to vendor/webview.h.
+(library
+ (name webview_desktop)
+ (public_name owebview.desktop)
+ (libraries webview)
+ (foreign_stubs
+  (language cxx)
+  (names icon_stubs)
+  ; -std=c++11 plus any platform cflags (e.g. GTK include paths on Linux) are
+  ; detected at build time by config/discover.exe. Note the absence of
+  ; -I ../vendor: nothing here includes webview.h.
+  (flags
+   (:standard
+    (:include c_flags.sexp))))
+ ; Link flags (Cocoa on macOS, GTK on Linux, WIC/GDI on Windows) are detected
+ ; at build time too — see the rule below.
+ (c_library_flags
+  (:include c_library_flags.sexp)))
+
+; Generate the platform-specific flag files with dune-configurator.
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (deps
+  (:discover config/discover.exe))
+ (action
+  (run %{discover})))

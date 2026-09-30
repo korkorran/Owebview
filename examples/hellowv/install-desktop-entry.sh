@@ -2,11 +2,11 @@
 # Installs (or removes, with --uninstall) a .desktop file for the hellowv
 # example so its window gets a real Dock/taskbar icon on Linux.
 #
-# Why this is needed (see lib/webview.mli, set_app_icon / set_app_id): under
+# Why this is needed (see desktop/icon.mli, set_app_icon / set_app_id): under
 # native Wayland (GNOME's default), the Dock resolves an app's icon from an
 # installed .desktop file matched by the process's app id, not from
 # _NET_WM_ICON (an X11-only property that set_app_icon sets, and that Wayland
-# doesn't have). hellowv.ml calls [Webview.Icon.set_app_id "hellowv"] before
+# doesn't have). hellowv.ml calls [Webview_desktop.Icon.set_app_id "hellowv"] before
 # creating its window; this script installs a .desktop file whose
 # StartupWMClass matches that id, so GNOME (and other desktops) can find it.
 #

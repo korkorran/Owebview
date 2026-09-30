@@ -102,6 +102,16 @@ Then depend on it from your `dune` file:
  (libraries owebview))
 ```
 
+Native desktop integration — the application icon today, native dialogs and
+menu bars later — lives in a companion library, so that `owebview` itself stays
+a thin binding to the webview C API. Add it when you need it:
+
+```dune
+(executable
+ (name main)
+ (libraries owebview owebview.desktop))
+```
+
 ## See it run
 
 Clone the repo and launch one of the bundled example, for instance `hellowv`:
@@ -123,11 +133,11 @@ files in [`examples/hellowv/web/`](examples/hellowv/web/) — peek at
 into OCaml.
 
 > **Linux Dock icon**: on native Wayland (GNOME's default), the Dock ignores
-> `Webview.Icon.set_app_icon` — it resolves an app's icon from an installed
+> `Webview_desktop.Icon.set_app_icon` — it resolves an app's icon from an installed
 > `.desktop` file, not from window properties. Run
 > `examples/hellowv/install-desktop-entry.sh` once to install one for the
-> example (`--uninstall` removes it); see `Webview.Icon.set_app_id` in
-> [`lib/webview.mli`](lib/webview.mli) for the details.
+> example (`--uninstall` removes it); see `Webview_desktop.Icon.set_app_id` in
+> [`desktop/icon.mli`](desktop/icon.mli) for the details.
 
 
 ## Native dependencies

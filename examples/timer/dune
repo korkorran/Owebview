@@ -1,7 +1,7 @@
 (executable
  (name timer_posix)
  (modules timer_posix)
- (libraries webview threads.posix))
+ (libraries webview webview_desktop threads.posix))
 
 ; Same example, but the threading is driven by Lwt (see async.md): the webview
 ; event loop runs on a detached preemptive thread while Lwt owns the main
@@ -9,7 +9,7 @@
 (executable
  (name timer_lwt)
  (modules timer_lwt)
- (libraries webview lwt.unix threads.posix))
+ (libraries webview webview_desktop lwt.unix threads.posix))
 
 ; Stage the web/ assets next to the built binary (_build/.../examples/timer/web/)
 ; so the example is self-contained in the build tree, without installing them

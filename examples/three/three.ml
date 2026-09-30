@@ -5,7 +5,7 @@ let () =
 
   let icon = Filename.concat (Webview.Utils.web_dir ()) "3D.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
   (* The 3D scene is rendered entirely in the page with the vendored three.js
      (WebGL); no binding is needed. The web/ directory (with three.min.js) is

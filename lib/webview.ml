@@ -68,13 +68,5 @@ let return w id ~error ~result = _return w id (if error then 1 else 0) result
 let get_native_handle w kind =
   _get_native_handle w (int_of_native_handle_kind kind)
 
-(* Re-export the application icon/id helpers as [Webview.Icon]. The underlying
-   stub takes the native top-level window (it knows nothing of [t]), so the
-   handle is resolved here with [get_window]. *)
-module Icon = struct
-  let set_app_id = Icon.set_app_id
-  let set_app_icon w path = Icon.set_app_icon (get_window w) path
-end
-
 (* Re-export the filesystem helpers as [Webview.Utils]. *)
 module Utils = Utils

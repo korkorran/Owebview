@@ -1,6 +1,6 @@
 (executable
  (name d3)
- (libraries webview))
+ (libraries webview webview_desktop))
 
 ; Stage the web/ assets (including the vendored d3.v7.min.js) next to the built
 ; binary so the example is self-contained in the build tree, without installing

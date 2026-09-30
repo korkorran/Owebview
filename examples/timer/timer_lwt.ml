@@ -44,7 +44,7 @@ let () =
 
   let icon = Filename.concat (Webview.Utils.web_dir ()) "timer.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
   (* window.print_time(seconds): its Lwt handler runs on the Lwt thread. It must
      still answer the JS call with [return] (safe from another thread). *)

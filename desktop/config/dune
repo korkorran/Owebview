@@ -1,0 +1,8 @@
+; Build-time program that detects the platform-specific C++ compile/link flags
+; for the desktop-integration stubs and writes them to sexp files consumed by
+; ../dune. These stubs talk to Cocoa, GTK and Win32 directly and never include
+; vendor/webview.h, so the flags here are deliberately narrower than the ones
+; the core library needs: no WebKit, no WebKitGTK, no WebView2 SDK.
+(executable
+ (name discover)
+ (libraries dune-configurator))

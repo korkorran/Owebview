@@ -10,12 +10,22 @@ Two functions fix that, and they do quite different things:
 
 | Function | Scope | Platforms |
 |----------|-------|-----------|
-| `Webview.Icon.set_app_icon` | Sets an icon from an image file | macOS, Windows, Linux/GTK3 |
-| `Webview.Icon.set_app_id` | Declares a process-wide application id | Linux only (no-op elsewhere) |
+| `Webview_desktop.Icon.set_app_icon` | Sets an icon from an image file | macOS, Windows, Linux/GTK3 |
+| `Webview_desktop.Icon.set_app_id` | Declares a process-wide application id | Linux only (no-op elsewhere) |
 
-Both live in the `Webview.Icon` submodule — like `Webview.Utils` in
-[step 02](02-assets.md), it groups what is not part of the webview API itself.
-The signatures below are written as they appear inside it.
+Both live in `Webview_desktop.Icon`, in a **separate library**: `owebview`
+stays a thin binding to the webview C API, and everything that talks to Cocoa,
+GTK or Win32 directly — the icon today, native dialogs and menu bars later —
+lives alongside it in `owebview.desktop`. So this step needs one more entry in
+your `dune` file:
+
+```dune
+(executable
+ (name main)
+ (libraries owebview owebview.desktop))
+```
+
+The signatures below are written as they appear inside the `Icon` module.
 
 On macOS and Windows the first one is all you need. On Linux the answer depends
 on whether the session is X11 or Wayland — and under Wayland, `set_app_icon`
@@ -25,17 +35,17 @@ The reference implementation is
 [`examples/hellowv/hellowv.ml`](../examples/hellowv/hellowv.ml), together with
 its [`install-desktop-entry.sh`](../examples/hellowv/install-desktop-entry.sh).
 
-## `Webview.Icon.set_app_icon`
+## `Webview_desktop.Icon.set_app_icon`
 
 ```ocaml
-val set_app_icon : t -> string -> unit
+val set_app_icon : Webview.t -> string -> unit
 ```
 
 It takes a path to an image file. What it actually sets depends on the backend:
 
 | Platform | What it sets | Notes |
 |----------|--------------|-------|
-| **macOS** | The Dock icon, via `NSApp setApplicationIconImage:` | Application-global — the `t` argument is ignored. Timing matters, see below. |
+| **macOS** | The Dock icon, via `NSApp setApplicationIconImage:` | Application-global — the `Webview.t` argument is ignored. Timing matters, see below. |
 | **Windows** | The window icon, via `WM_SETICON` | The file is decoded with WIC, so `.png`, `.jpg`, `.bmp`, `.gif`, `.tif` and `.ico` all work; it is rescaled to the system's large and small icon metrics. |
 | **Linux / GTK 3** | The window icon (taskbar, switcher), via `gtk_window_set_icon_from_file` | Under X11 this becomes the `_NET_WM_ICON` property. Under Wayland, see below. |
 | **Linux / GTK 4** | Nothing | GTK 4 removed per-window icon-from-file; the `.desktop` route is the only one. |
@@ -46,7 +56,7 @@ unreadable format — so guard it if the icon is optional:
 
 ```ocaml
 let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
-if Sys.file_exists icon then Webview.Icon.set_app_icon w icon
+if Sys.file_exists icon then Webview_desktop.Icon.set_app_icon w icon
 ```
 
 Note where the icon lives: next to the web assets, found with
@@ -64,7 +74,7 @@ This is the one that costs people an afternoon:
 
 ```ocaml
 (* Wrong: nothing happens. *)
-Webview.Icon.set_app_icon w icon;
+Webview_desktop.Icon.set_app_icon w icon;
 Webview.run w
 ```
 
@@ -82,7 +92,7 @@ is to say, once the app is active:
 ```ocaml
 let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
 if Sys.file_exists icon then
-  Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
+  Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
 Webview.run w
 ```
@@ -97,12 +107,12 @@ the icon is simply set a few milliseconds later.
 val set_app_id : string -> unit
 ```
 
-Note the signature: no `t`. It is process-wide, and it must be called **before**
+Note the signature: no `Webview.t`. It is process-wide, and it must be called **before**
 `Webview.create`, so that it applies to the first window that gets realized.
 
 ```ocaml
 let () =
-  Webview.Icon.set_app_id "hellowv";     (* before create *)
+  Webview_desktop.Icon.set_app_id "hellowv";     (* before create *)
   let w = Webview.create () in
   ...
 ```
@@ -125,7 +135,7 @@ Instead, the shell takes the window's `app_id`, looks for an installed
 So the chain under Wayland is:
 
 ```
-Webview.Icon.set_app_id "hellowv"
+Webview_desktop.Icon.set_app_id "hellowv"
         │  (becomes the Wayland app_id)
         ▼
   hellowv.desktop          ← installed in ~/.local/share/applications/
@@ -155,7 +165,7 @@ Categories=Development;
 ```
 
 The line that does the work is `StartupWMClass=hellowv` — it must match the
-string you passed to `Webview.Icon.set_app_id`. (A shell will also match the
+string you passed to `Webview_desktop.Icon.set_app_id`. (A shell will also match the
 `.desktop` file's own id, i.e. its filename, so naming the file `hellowv.desktop`
 achieves the same thing; `StartupWMClass` is the explicit and more reliable
 form.)
@@ -183,7 +193,7 @@ dune exec examples/hellowv/hellowv.exe     # now with a real Dock icon
 ```ocaml
 let () =
   (* Process-wide, Linux-only, and it must come before [create]. *)
-  Webview.Icon.set_app_id "hellowv";
+  Webview_desktop.Icon.set_app_id "hellowv";
 
   let w = Webview.create ~debug:true () in
   Webview.set_title w "Hello from OCaml";
@@ -192,7 +202,7 @@ let () =
   (* Dispatched, so that on macOS it runs once the app is active. *)
   let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
   if Sys.file_exists icon then
-    Webview.dispatch w (fun w -> Webview.Icon.set_app_icon w icon);
+    Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
   let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);

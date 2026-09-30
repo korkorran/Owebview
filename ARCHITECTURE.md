@@ -11,11 +11,12 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 |---|---|
 | `lib/webview.mli` / `.ml` | OCaml API + `external` declarations |
 | `lib/webview_stubs.cpp` | C ↔ OCaml glue for the `vendor/webview.h` API (runtime lock, GC roots for callbacks) |
-| `lib/icon_stubs.cpp` | `set_app_icon` / `set_app_id`: direct Cocoa/GTK/Win32 calls, outside the webview API |
-| `lib/icon.ml` | Application icon/id externals (`Webview.Icon`) |
 | `lib/utils.ml` | Filesystem helpers (`Webview.Utils`) to locate assets |
 | `lib/dune` | Compiles the C++ stub and links the native libraries |
 | `lib/config/discover.ml` | Detects platform C++ flags at build time (dune-configurator) |
+| `desktop/icon.mli` / `.ml` | `owebview.desktop`: `Webview_desktop.Icon`, the application icon and id |
+| `desktop/icon_stubs.cpp` | Direct Cocoa/GTK/Win32 calls; includes no part of `vendor/webview.h` |
+| `desktop/config/discover.ml` | Its own, narrower flags: no WebKit, no WebKitGTK, no WebView2 SDK |
 | `examples/hellowv/hellowv.ml` | Minimal window with two JS → OCaml bindings |
 | `examples/hellowv/utils.ml` | Example-local helper (host OS detection) |
 | `examples/hellowv/web/` | Page assets (`index.html` + `style.css` + `app.js`) |
