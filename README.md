@@ -28,6 +28,9 @@ All the power of web technologies in your app. No Electron, no bundler: create a
   </tr>
 </table>
 
+A complete app demonstrating Owebview feature : [Sun notes](https://github.com/korkorran/Sun-notes).
+Packages for Debian, Fedora, macOS, Windows available for download.
+
 ## Learn about Owebview
 
 Please refer to the [tutorial](./tutorial/README.md)
