@@ -4,6 +4,30 @@ A thin OCaml binding to {{:https://github.com/webview/webview}webview}: open a
 native window backed by the operating system's web engine, load HTML/CSS/JS,
 and bridge JavaScript with OCaml — no Electron, no bundler.
 
+{1 Two libraries}
+
+The [owebview] package installs two libraries, and the split is deliberate.
+
+- {b [owebview]} — module {!module:Webview}. The binding proper: the complete
+  webview 0.12 C API and nothing else. It stays thin on purpose, and leaves
+  higher-level conveniences (JSON for the bridge, for instance) to the caller.
+
+- {b [owebview.desktop]} — module {!module:Webview_desktop}. Everything a
+  native application needs {e around} the web view: finding its assets on
+  disk, its icon in the Dock, the system's modal dialogs, the menu bar. None
+  of it is part of the webview API — it calls Cocoa, GTK and Win32 directly,
+  and its C stubs include no part of [webview.h]. It reaches the window
+  through {!Webview.get_window}, like any other user of the binding could.
+
+Depend on the first alone for a window whose content is an inline HTML string;
+add the second as soon as the page comes from files on disk:
+
+{[
+  (executable
+   (name main)
+   (libraries owebview owebview.desktop))
+]}
+
 {1 Quickstart}
 
 A whole application is about ten lines:
@@ -30,21 +54,65 @@ Call OCaml from the page and answer the JavaScript promise:
       Webview.return w id ~error:false ~result)
 ]}
 
-{1 API}
+Load a real page, with its CSS and images, from a directory next to the
+executable:
+
+{[
+  let index =
+    Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html"
+  in
+  Webview.navigate w ("file://" ^ index)
+]}
+
+A step-by-step
+{{:https://github.com/korkorran/Owebview/tree/main/tutorial}tutorial} builds
+this up from a first window to a complete application.
+
+{1 [owebview]: the webview binding}
 
 The whole binding is the {!module:Webview} module. A tour of it:
 
 - {b Lifecycle}: {!Webview.create}, {!Webview.run}, {!Webview.terminate},
   {!Webview.destroy}
-- {b Content}: {!Webview.navigate}, {!Webview.set_html}, {!Webview.eval}
-- {b JavaScript bridge}: {!Webview.bind}, {!Webview.unbind}, {!Webview.return}
-- {b Threading}: {!Webview.dispatch}
-- {b Native handles}: {!Webview.get_native_handle}
-- {b Desktop integration} (library [owebview.desktop]):
-  {!Webview_desktop.Locate_assets.web_dir},
-  {!Webview_desktop.Icon.set_app_icon}, {!Webview_desktop.Icon.set_app_id},
-  {!Webview_desktop.Dialog.confirm}, {!Webview_desktop.Dialog.open_file},
-  {!Webview_desktop.Menu.set}
+- {b Window}: {!Webview.set_title}, {!Webview.set_size}
+- {b Content}: {!Webview.navigate}, {!Webview.set_html}, {!Webview.init},
+  {!Webview.eval}
+- {b JavaScript bridge}: {!Webview.bind}, {!Webview.return},
+  {!Webview.unbind}
+- {b Threading}: {!Webview.dispatch}, the one safe way to drive the window
+  from another thread
+- {b Native handles}: {!Webview.get_window}, {!Webview.get_native_handle}
+
+{1 [owebview.desktop]: native desktop integration}
+
+Four independent modules under {!module:Webview_desktop}:
+
+- {!module:Webview_desktop.Locate_assets} — find the application's [web/]
+  directory relative to the {e executable} rather than the current working
+  directory, so a page loads the same under [dune exec], from an installed
+  binary, or from a Dock icon. {!Webview_desktop.Locate_assets.web_dir} is the
+  one to call.
+
+- {!module:Webview_desktop.Icon} — give a plain executable a real icon
+  instead of the generic one: {!Webview_desktop.Icon.set_app_icon} for the
+  Dock, taskbar or switcher, and {!Webview_desktop.Icon.set_app_id} for the
+  application id a Wayland desktop matches against an installed [.desktop]
+  file.
+
+- {!module:Webview_desktop.Dialog} — the system's own modal dialogs:
+  {!Webview_desktop.Dialog.confirm}, {!Webview_desktop.Dialog.open_file} and
+  {!Webview_desktop.Dialog.open_directory}. They block until the user answers
+  and must run on the UI thread, which makes a binding callback their natural
+  home.
+
+- {!module:Webview_desktop.Menu} — the native menu bar, described as an
+  ordinary OCaml value and installed with {!Webview_desktop.Menu.set}, with
+  keyboard accelerators and per-item callbacks.
+
+Each module's own page documents what differs between platforms, which is
+where the real detail lives: macOS runs the menu bar and the Dock icon
+application-globally, Linux needs a [.desktop] file under Wayland, and GTK 4
+supports neither the dialogs nor the menu bar.
 
 {1 Native dependencies}
 
@@ -54,5 +122,7 @@ webview uses the system web engine, so its native libraries are needed:
 - {b Linux}: [gtk+-3.0] and [webkit2gtk-4.1] ([-dev] packages).
 - {b Windows}: the WebView2 runtime (ships with Windows 10/11).
 
-The platform-specific compile and link flags are detected automatically at
-build time, so there is nothing to tweak by hand.
+[owebview.desktop] needs strictly less — the platform toolkit without the web
+engine — so it adds nothing to install. The platform-specific compile and link
+flags of both libraries are detected automatically at build time, and there is
+nothing to tweak by hand.

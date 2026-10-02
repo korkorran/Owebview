@@ -3,8 +3,14 @@
     Give the application a real icon in the Dock, the taskbar or the window
     switcher, instead of the generic executable one.
 
-    Neither entry point belongs to the webview API: they call into Cocoa, GTK
-    and Win32 directly. *)
+    {2 Do you need this?}
+
+    Mostly during development, and for an executable shipped on its own: there
+    the system has nothing but the binary to go on. An application distributed
+    as a proper package carries its icon in the package itself, which the
+    system picks up before any of your code runs, and both functions then have
+    nothing left to do — the desktop entry a package installs already names the
+    icon, and already matches the process by its executable name. *)
 
 val set_app_icon : Webview.t -> string -> unit
 (** [set_app_icon w path] sets the application/window icon from an image file,

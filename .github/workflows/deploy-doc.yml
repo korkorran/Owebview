@@ -3,12 +3,19 @@ name: Deploy documentation
 # Builds the odoc documentation and publishes it to GitHub Pages at
 # https://korkorran.github.io/Owebview
 #
+# Runs on every push to the `doc` branch, so publishing the site is a
+# deliberate act: merge or cherry-pick into `doc` when the documentation is
+# ready to go out.
+#
 # One-time setup on GitHub: Settings → Pages → "Build and deployment" →
-# Source = "GitHub Actions".
+# Source = "GitHub Actions". Since this deploys from a branch other than the
+# default one, check Settings → Environments → github-pages: if its deployment
+# branch rule still names only the default branch, add `doc` or the deploy
+# step will be refused.
 
 on:
   push:
-    branches: [main]
+    branches: [doc]
   workflow_dispatch:
 
 # Permissions the deploy-pages action needs.
