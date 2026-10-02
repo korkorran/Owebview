@@ -81,7 +81,7 @@ Once HTML rendering works, the fun part is the OCaml ↔ JavaScript bridge: `Web
 Other handy entry points: `Webview.navigate` (load a URL or a local `file://`
 page), `Webview.init` / `Webview.eval` (inject JavaScript), and
 `Webview.terminate` (close the window from code). The full API lives in
-[`lib/webview.mli`](lib/webview.mli).
+[`webview/webview.mli`](webview/webview.mli).
 
 ## Install and use in your own project
 

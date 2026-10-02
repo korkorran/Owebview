@@ -9,4 +9,4 @@
  (name discover)
  (libraries dune-configurator))
 
-(copy_files# ../../lib/config/webview2_sdk.ml)
+(copy_files# ../../webview/config/webview2_sdk.ml)

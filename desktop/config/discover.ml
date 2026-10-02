@@ -37,7 +37,7 @@ let mingw_flags = [ "-std=c++14" ]
    -static-libgcc and -static-libstdc++ mirror the core library: they fold the
    GCC runtime into the executable instead of leaving it to find
    libgcc_s_seh-1.dll and friends beside itself at startup. See the longer note
-   in lib/config/discover.ml, including the caveat about -static-libstdc++
+   in webview/config/discover.ml, including the caveat about -static-libstdc++
    being a g++-driver option. *)
 let mingw_link_flags =
   [

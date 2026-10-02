@@ -263,7 +263,7 @@ ordinary web development.
 
 Worth reading next:
 
-- [`lib/webview.mli`](../lib/webview.mli) — the complete API, well commented.
+- [`webview/webview.mli`](../webview/webview.mli) — the complete API, well commented.
   A few things this tutorial did not need: `Webview.get_window` and
   `Webview.get_native_handle` for platform-specific FFI (a native file dialog,
   for instance), and `Webview.version`.

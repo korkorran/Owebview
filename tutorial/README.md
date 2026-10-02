@@ -29,7 +29,7 @@ opam install owebview
 On Windows, install the Microsoft WebView2 package (`nuget install Microsoft.Web.WebView2`)
 before the OPAM installation. On Unix, OPAM pulls in everything else.
 
-The API reference lives in [`lib/webview.mli`](../lib/webview.mli), and the
+The API reference lives in [`webview/webview.mli`](../webview/webview.mli), and the
 finished programs of the [`examples/`](../examples/) directory are the natural
 next reading once you are done here.
 

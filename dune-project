@@ -24,7 +24,7 @@
    (and
     (>= 3.0)
     :build))
-  ; The stubs are compiled as C++ ((language cxx) in lib/dune), so a C++
+  ; The stubs are compiled as C++ ((language cxx) in webview/dune), so a C++
   ; toolchain is required. On Windows this pulls in conf-mingw-w64-g++-x86_64
   ; (or the MSVC equivalent); without it the build fails late, during
   ; compilation, with the opaque "cannot execute 'cc1plus'".

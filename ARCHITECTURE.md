@@ -9,11 +9,11 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 
 | File | Role |
 |---|---|
-| `lib/webview.mli` / `.ml` | OCaml API + `external` declarations |
-| `lib/webview_stubs.cpp` | C ↔ OCaml glue for the `vendor/webview.h` API (runtime lock, GC roots for callbacks) |
-| `lib/utils.ml` | Filesystem helpers (`Webview.Utils`) to locate assets |
-| `lib/dune` | Compiles the C++ stub and links the native libraries |
-| `lib/config/discover.ml` | Detects platform C++ flags at build time (dune-configurator) |
+| `webview/webview.mli` / `.ml` | OCaml API + `external` declarations |
+| `webview/webview_stubs.cpp` | C ↔ OCaml glue for the `vendor/webview.h` API (runtime lock, GC roots for callbacks) |
+| `webview/utils.ml` | Filesystem helpers (`Webview.Utils`) to locate assets |
+| `webview/dune` | Compiles the C++ stub and links the native libraries |
+| `webview/config/discover.ml` | Detects platform C++ flags at build time (dune-configurator) |
 | `desktop/icon.mli` / `.ml` | `owebview.desktop`: `Webview_desktop.Icon`, the application icon and id |
 | `desktop/icon_stubs.cpp` | Direct Cocoa/GTK/Win32 calls; includes no part of `vendor/webview.h` |
 | `desktop/dialog.mli` / `.ml` | `Webview_desktop.Dialog`: native confirm and file/folder pickers |
@@ -60,9 +60,9 @@ one file, so there is nothing extra to fetch or build for webview itself (only
 the system web engine is linked — see below).
 
 The platform-specific C++ compile/link flags are detected automatically at
-build time by `lib/config/discover.ml` (dune-configurator): the WebKit/Cocoa
+build time by `webview/config/discover.ml` (dune-configurator): the WebKit/Cocoa
 frameworks on macOS, and the `gtk+-3.0` / `webkit2gtk-4.1` flags from
-`pkg-config` on Linux. No manual editing of `lib/dune` is needed — just make
+`pkg-config` on Linux. No manual editing of `webview/dune` is needed — just make
 sure the `-dev` packages are installed on Linux (they are declared as the
 package's opam `depexts`).
 
