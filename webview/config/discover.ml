@@ -16,23 +16,26 @@ let mingw_flags = [ "-std=c++14";  ]
    own: it runs on the machine that built it, where the toolchain's bin/ is on
    PATH, and fails everywhere else.
 
-   A caveat on the second one. -static-libstdc++ is implemented by the *g++*
-   driver (g++spec.cc), which swaps the -lstdc++ it adds itself for the static
-   archive. OCaml links through the C driver, and the -lstdc++ below is
-   explicit, so the option may well be a no-op here. -static-libgcc has no
-   such problem: it is handled by the common driver and does take effect.
+   The two halves are not obtained the same way. -static-libgcc is handled by
+   the common gcc driver and takes effect as written.
 
-   The way to find out is to build on Windows and look:
+   libstdc++ needs the blunter form. -static-libstdc++ is implemented by the
+   *g++* driver (g++spec.cc), which swaps the -lstdc++ it adds itself for the
+   static archive; OCaml links through the C driver against an explicit
+   -lstdc++, so that option is a no-op here — which is why it is gone and
+   "-l:libstdc++.a" takes its place. That spelling names the archive outright
+   and does not depend on which driver is in use.
+
+   Verify on Windows with:
 
      objdump -p _build/default/<your exe> | grep 'DLL Name'
 
-   If libstdc++-6.dll is still listed, replace "-lstdc++" below with
-   "-l:libstdc++.a", which names the static archive outright and does not
-   depend on which driver is in use. That is left as a follow-up rather than
-   done here because it cannot be tested from a non-Windows host, and a
-   toolchain built with posix threads may then also need "-lwinpthread". *)
+   Nothing belonging to the toolchain should be listed. Should the link fail
+   instead on unresolved pthread symbols, this toolchain builds libstdc++
+   against posix threads, and "-link" "-l:libwinpthread.a" has to join the
+   list below. *)
 let mingw_link_flags =
-  [ "-link"; "-static-libgcc"; "-link"; "-static-libstdc++"; "-lstdc++"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
+  [ "-link"; "-static-libgcc"; "-link"; "-l:libstdc++.a"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 
 (* Linux: the webview backend is GTK 3 + WebKitGTK. *)
 let linux_packages = [ "gtk+-3.0"; "webkit2gtk-4.1" ]

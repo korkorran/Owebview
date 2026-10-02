@@ -34,18 +34,17 @@ let mingw_flags = [ "-std=c++14" ]
    have not always agreed on which of the two archives carries the shell
    GUIDs, and an unused import library costs nothing.
 
-   -static-libgcc and -static-libstdc++ mirror the core library: they fold the
+   -static-libgcc and -l:libstdc++.a mirror the core library: they fold the
    GCC runtime into the executable instead of leaving it to find
-   libgcc_s_seh-1.dll and friends beside itself at startup. See the longer note
-   in webview/config/discover.ml, including the caveat about -static-libstdc++
-   being a g++-driver option. *)
+   libgcc_s_seh-1.dll and friends beside itself at startup. The longer note in
+   webview/config/discover.ml says why libstdc++ is named as an archive rather
+   than through -static-libstdc++. *)
 let mingw_link_flags =
   [
     "-link";
     "-static-libgcc";
     "-link";
-    "-static-libstdc++";
-    "-lstdc++";
+    "-l:libstdc++.a";
     "-lole32";
     "-luser32";
     "-lwindowscodecs";
