@@ -13,7 +13,7 @@
 
 ; Stage the web/ assets next to the built binary (_build/.../examples/timer/web/)
 ; so the example is self-contained in the build tree, without installing them
-; into the opam switch. See Webview.Utils.web_dir.
+; into the opam switch. See Webview_desktop.Locate_assets.web_dir.
 (alias
  (name all)
  (deps

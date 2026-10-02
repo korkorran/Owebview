@@ -207,5 +207,5 @@ Printf.printf "using webview %s\n%!" v.Webview.version_number
 
 The inline HTML string is already cramped. In
 [step 02](02-assets.md) we move the page into real `.html`, `.css` and image
-files, load them with `Webview.navigate`, and let `Webview.Utils.web_dir` find
+files, load them with `Webview.navigate`, and let `Webview_desktop.Locate_assets.web_dir` find
 them whether the program runs from the build tree or from an installed location.

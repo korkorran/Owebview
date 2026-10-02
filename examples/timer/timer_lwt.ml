@@ -42,7 +42,7 @@ let () =
   Webview.set_title w "Timer (Lwt)";
   Webview.set_size w ~width:380 ~height:460 Webview.Hint_none;
 
-  let icon = Filename.concat (Webview.Utils.web_dir ()) "timer.png" in
+  let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "timer.png" in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
@@ -61,7 +61,7 @@ let () =
       Webview.return w id ~error:false ~result:"null";
       Lwt.return_unit);
 
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Printf.printf

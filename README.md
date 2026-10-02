@@ -102,10 +102,10 @@ Then depend on it from your `dune` file:
  (libraries owebview))
 ```
 
-Native desktop integration — the application icon, the system's own modal
-dialogs, and the native menu bar — lives in a companion library, so that
-`owebview` itself stays a thin binding to the webview C API. Add it when you
-need it:
+Native desktop integration — locating your on-disk assets, the application
+icon, the system's own modal dialogs and the native menu bar — lives in a
+companion library, so that `owebview` itself stays a thin binding to the
+webview C API. Any app that loads its page from disk needs it:
 
 ```dune
 (executable
@@ -113,8 +113,10 @@ need it:
  (libraries owebview owebview.desktop))
 ```
 
-It currently provides `Webview_desktop.Icon` (the Dock/taskbar icon and the
-application id), `Webview_desktop.Dialog` and `Webview_desktop.Menu`:
+It provides `Webview_desktop.Locate_assets` (finds your `web/` directory
+relative to the executable, whatever the working directory),
+`Webview_desktop.Icon` (the Dock/taskbar icon and the application id),
+`Webview_desktop.Dialog` and `Webview_desktop.Menu`:
 
 ```ocaml
 (* From a binding callback, i.e. on the UI thread. *)

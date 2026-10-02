@@ -41,10 +41,10 @@ The whole binding is the {!module:Webview} module. A tour of it:
 - {b Threading}: {!Webview.dispatch}
 - {b Native handles}: {!Webview.get_native_handle}
 - {b Desktop integration} (library [owebview.desktop]):
+  {!Webview_desktop.Locate_assets.web_dir},
   {!Webview_desktop.Icon.set_app_icon}, {!Webview_desktop.Icon.set_app_id},
   {!Webview_desktop.Dialog.confirm}, {!Webview_desktop.Dialog.open_file},
   {!Webview_desktop.Menu.set}
-- {b Locating on-disk assets}: {!Webview.Utils.web_dir}
 
 {1 Native dependencies}
 

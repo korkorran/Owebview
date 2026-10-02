@@ -39,7 +39,7 @@ bridge-demo/
 ```dune
 (executable
  (name main)
- (libraries owebview threads.posix unix))
+ (libraries owebview owebview.desktop threads.posix unix))
 
 (alias
  (name all)
@@ -89,7 +89,7 @@ let () =
   (* window.quit() -> closes the window from the page. *)
   Webview.bind w "quit" (fun _id _req -> Webview.terminate w);
 
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   (* A background thread pushes the time into the page every second. It is not

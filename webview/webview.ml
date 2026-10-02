@@ -67,6 +67,3 @@ let return w id ~error ~result = _return w id (if error then 1 else 0) result
 
 let get_native_handle w kind =
   _get_native_handle w (int_of_native_handle_kind kind)
-
-(* Re-export the filesystem helpers as [Webview.Utils]. *)
-module Utils = Utils

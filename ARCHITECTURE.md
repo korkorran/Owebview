@@ -11,9 +11,9 @@ OCaml binding for the [webview](https://github.com/webview/webview) library.
 |---|---|
 | `webview/webview.mli` / `.ml` | OCaml API + `external` declarations |
 | `webview/webview_stubs.cpp` | C ↔ OCaml glue for the `vendor/webview.h` API (runtime lock, GC roots for callbacks) |
-| `webview/utils.ml` | Filesystem helpers (`Webview.Utils`) to locate assets |
 | `webview/dune` | Compiles the C++ stub and links the native libraries |
 | `webview/config/discover.ml` | Detects platform C++ flags at build time (dune-configurator) |
+| `desktop/locate_assets.mli` / `.ml` | `Webview_desktop.Locate_assets`: finds `web/` relative to the executable |
 | `desktop/icon.mli` / `.ml` | `owebview.desktop`: `Webview_desktop.Icon`, the application icon and id |
 | `desktop/icon_stubs.cpp` | Direct Cocoa/GTK/Win32 calls; includes no part of `vendor/webview.h` |
 | `desktop/dialog.mli` / `.ml` | `Webview_desktop.Dialog`: native confirm and file/folder pickers |

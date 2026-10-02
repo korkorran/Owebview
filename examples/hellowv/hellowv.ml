@@ -27,7 +27,7 @@ let () =
      under X11, _NET_WM_ICON. GNOME's Dock under Wayland ignores it entirely
      and instead needs an installed .desktop file matching set_app_id above
      — run ./install-desktop-entry.sh once to see it there too. *)
-  let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
+  let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
@@ -114,7 +114,7 @@ let () =
      The CSS and JS referenced with relative paths in index.html are resolved
      relative to that file. We locate the web/ directory from the executable
      location, so it works both installed and from the build tree. *)
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Webview.run w;

@@ -23,17 +23,18 @@ let asset_dir () =
     (strip (String.split_on_char '/' (exe_dir ())))
 
 (* Locate the directory holding the web assets (index.html + style.css +
-   app.js), independently of the current working directory.
+   app.js), independently of the current working directory. [dir] names that
+   directory, for projects that do not call it "web".
 
-   We read from the {b target} directory next to the binary ([exe_dir/web]),
+   We read from the {b target} directory next to the binary ([exe_dir/dir]),
    because it holds both the staged source assets and any {e generated} ones
    (e.g. an app.js produced by js_of_ocaml) — the source tree has only the
    former. [dune build] stages/generates them there (see the [all] alias in the
    examples' dune files); a [_build] copy relocated elsewhere keeps working
    since the assets sit beside the binary. Falling back to the source tree
-   ([asset_dir/web]) only covers the case where nothing was staged yet. *)
-let web_dir () =
-  let has_index dir = Sys.file_exists (Filename.concat dir "index.html") in
-  let beside_binary = Filename.concat (exe_dir ()) "web" in
+   ([asset_dir/dir]) only covers the case where nothing was staged yet. *)
+let web_dir ?(dir = "web") () =
+  let has_index d = Sys.file_exists (Filename.concat d "index.html") in
+  let beside_binary = Filename.concat (exe_dir ()) dir in
   if has_index beside_binary then beside_binary
-  else Filename.concat (asset_dir ()) "web"
+  else Filename.concat (asset_dir ()) dir

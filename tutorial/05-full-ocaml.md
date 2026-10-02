@@ -91,7 +91,7 @@ Unchanged from [step 02](02-assets.md):
 ```dune
 (executable
  (name main)
- (libraries owebview unix threads.posix))
+ (libraries owebview owebview.desktop unix threads.posix))
 
 (alias
  (name all)
@@ -99,7 +99,7 @@ Unchanged from [step 02](02-assets.md):
   (glob_files web/*)))
 ```
 
-This is where the design of `Webview.Utils.web_dir` pays off. Remember that it
+This is where the design of `Webview_desktop.Locate_assets.web_dir` pays off. Remember that it
 looks for `exe_dir ()/web` **first**, and only falls back to the source tree.
 Here that ordering is not a nicety, it is a requirement: `index.html` and
 `style.css` are staged there from your sources, but `app.js` exists **only** in

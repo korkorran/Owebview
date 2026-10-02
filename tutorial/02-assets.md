@@ -5,7 +5,7 @@
 The inline HTML string of [step 01](01-first-window.md) got cramped fast, and it
 cannot pull in a stylesheet or an image. In this step we move the interface into
 real `.html`, `.css` and `.png` files, load it with `Webview.navigate`, and let
-`Webview.Utils.web_dir` find those files whether the program runs from the build
+`Webview_desktop.Locate_assets.web_dir` find those files whether the program runs from the build
 tree or from an installed location.
 
 ## The project layout
@@ -21,7 +21,7 @@ hello-owebview/
     └── logo.png
 ```
 
-The `web/` name is not arbitrary: it is the directory `Webview.Utils.web_dir`
+The `web/` name is not arbitrary: it is the directory `Webview_desktop.Locate_assets.web_dir`
 looks for, so following the convention saves you from computing paths yourself.
 
 ## The page
@@ -70,7 +70,7 @@ let () =
   Webview.set_size w ~width:640 ~height:480 Webview.Hint_none;
 
   (* Locate web/index.html relative to the executable, not to the cwd. *)
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Webview.run w;
@@ -78,7 +78,7 @@ let () =
 ```
 
 That is the whole change: `set_html` becomes `navigate`, pointed at a `file://`
-URL built from `Webview.Utils.web_dir ()`.
+URL built from `Webview_desktop.Locate_assets.web_dir ()`.
 
 ## `Webview.navigate`
 
@@ -111,19 +111,22 @@ Two things to keep in mind about the URL:
 `navigate` can be called again at any point in the life of the window, including
 from a callback, to swap the whole page.
 
-## Finding the assets: `Webview.Utils`
+## Finding the assets: `Webview_desktop.Locate_assets`
+
+(This module is in `owebview.desktop`, hence the extra entry in the `dune`
+file below.)
 
 Why not just write `"file://" ^ "web/index.html"`, or use a relative path?
 Because a relative path is resolved against the **current working directory**,
 which is not where your program lives. Launch the binary by double-clicking it,
 from a Dock icon, or from another directory, and the page vanishes.
 
-The `Webview.Utils` module resolves assets against the *executable* instead:
+The `Webview_desktop.Locate_assets` module resolves assets against the *executable* instead:
 
 ```ocaml
 val exe_dir   : unit -> string
 val asset_dir : unit -> string
-val web_dir   : unit -> string
+val web_dir   : ?dir:string -> unit -> string
 ```
 
 ### `exe_dir`
@@ -151,6 +154,15 @@ your sources *and* any **generated** ones — for instance an `app.js` produced 
 `js_of_ocaml` in [step 05](05-full-ocaml.md), which exists nowhere in the source
 tree. The fallback covers the case where nothing has been staged yet.
 
+`web` is only the default name. If your assets live somewhere else, name the
+directory and the same two-place lookup applies to it:
+
+```ocaml
+let index = Filename.concat (Locate_assets.web_dir ~dir:"assets" ()) "index.html"
+```
+
+Remember to match it in the `dune` alias below — `(glob_files assets/*)`.
+
 Concretely, in this project:
 
 ```
@@ -167,18 +179,21 @@ Either way the page loads, which is exactly what you want while developing.
 ```dune
 (executable
  (name main)
- (libraries owebview))
+ (libraries owebview owebview.desktop))
 
 ; Stage the web/ assets next to the built binary, so the build tree is
-; self-contained. See Webview.Utils.web_dir.
+; self-contained. See Webview_desktop.Locate_assets.web_dir.
 (alias
  (name all)
  (deps
   (glob_files web/*)))
 ```
 
-The `executable` stanza is unchanged from [step 01](01-first-window.md). The new
-part is the alias.
+Two changes from [step 01](01-first-window.md). The stanza gains
+`owebview.desktop`, the companion library where the asset-locating helper
+lives, alongside the other things that address the system rather than the web
+view — [step 06](06-app-icon.md) is where the rest of it shows up. And the new
+`alias` below it.
 
 Dune only copies a source file into `_build` when something depends on it, and
 nothing in an `executable` stanza depends on your CSS. Attaching
@@ -230,7 +245,7 @@ there instead.
 
 1. Delete `_build` and run `dune exec ./main.exe` without a prior `dune build`.
    The page should still load — from the source tree this time. Print
-   `Webview.Utils.web_dir ()` to see which branch was taken.
+   `Webview_desktop.Locate_assets.web_dir ()` to see which branch was taken.
 2. Run the binary directly from another directory
    (`cd /tmp && …/_build/default/main.exe`). It keeps working, which a
    cwd-relative path would not.

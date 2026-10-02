@@ -127,22 +127,3 @@ val get_window : t -> nativeint
 val get_native_handle : t -> native_handle_kind -> nativeint
 (** [get_native_handle w kind] returns the requested native handle as a pointer
     ([0n] if unavailable). *)
-
-(** {1 Locating assets} *)
-
-(** Filesystem helpers for locating on-disk assets (HTML/CSS/JS) relative to the
-    running executable, independently of the current working directory. *)
-module Utils : sig
-  val exe_dir : unit -> string
-  (** Absolute path to the directory containing the running executable. *)
-
-  val asset_dir : unit -> string
-  (** Directory to resolve on-disk assets against. When launched via
-      [dune exec], the executable lives under [_build/<context>/], where the
-      source assets are not copied; this maps such a path back to the matching
-      source directory. From an installed location the executable directory is
-      used as-is. *)
-
-  val web_dir : unit -> string
-  (** Directory to resolve web assets against. This is [asset_dir]/web. *)
-end

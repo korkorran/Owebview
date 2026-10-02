@@ -13,11 +13,13 @@ Two functions fix that, and they do quite different things:
 | `Webview_desktop.Icon.set_app_icon` | Sets an icon from an image file | macOS, Windows, Linux/GTK3 |
 | `Webview_desktop.Icon.set_app_id` | Declares a process-wide application id | Linux only (no-op elsewhere) |
 
-Both live in `Webview_desktop.Icon`, in a **separate library**: `owebview`
-stays a thin binding to the webview C API, and everything that talks to Cocoa,
-GTK or Win32 directly — the icon here, the native dialogs of
-`Webview_desktop.Dialog` — lives alongside it in `owebview.desktop`. So this step needs one more entry in
-your `dune` file:
+Both live in `Webview_desktop.Icon`, in the companion library
+`owebview.desktop` you have been depending on since
+[step 02](02-assets.md) — `owebview` itself stays a thin binding to the
+webview C API, while everything that addresses the system rather than the web
+view lives next door: `Locate_assets` from step 02, the icon here, and the
+native dialogs of `Webview_desktop.Dialog`. No change to your `dune` file is
+needed:
 
 ```dune
 (executable
@@ -55,12 +57,12 @@ It **raises `Failure`** when the image cannot be loaded — a missing file, an
 unreadable format — so guard it if the icon is optional:
 
 ```ocaml
-let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
+let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
 if Sys.file_exists icon then Webview_desktop.Icon.set_app_icon w icon
 ```
 
 Note where the icon lives: next to the web assets, found with
-`Webview.Utils.web_dir ()` exactly as `index.html` was in
+`Webview_desktop.Locate_assets.web_dir ()` exactly as `index.html` was in
 [step 02](02-assets.md). Same reasoning, same benefit — it works from the build
 tree and from an installed location, and it does not depend on the working
 directory.
@@ -90,7 +92,7 @@ thread, and dispatched callbacks are processed once the loop is running — that
 is to say, once the app is active:
 
 ```ocaml
-let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
+let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
 if Sys.file_exists icon then
   Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
@@ -200,11 +202,11 @@ let () =
   Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
 
   (* Dispatched, so that on macOS it runs once the app is active. *)
-  let icon = Filename.concat (Webview.Utils.web_dir ()) "hello.png" in
+  let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Webview.run w;

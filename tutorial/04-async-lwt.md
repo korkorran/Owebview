@@ -39,7 +39,7 @@ process's main thread — detaching `Webview.run` to another thread and keeping
 ```dune
 (executable
  (name main)
- (libraries owebview lwt.unix threads.posix))
+ (libraries owebview owebview.desktop lwt.unix threads.posix))
 
 (alias
  (name all)
@@ -68,7 +68,7 @@ let () =
 
   (* ... bindings ... *)
 
-  let index = Filename.concat (Webview.Utils.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   (* Lwt gets its own thread; the webview keeps the main one. *)

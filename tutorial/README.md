@@ -38,7 +38,7 @@ next reading once you are done here.
 | # | Step | What you learn |
 |---|------|----------------|
 | 01 | [Your first window](01-first-window.md) | `Webview.create`, `set_title`, `set_size`, `set_html`, `run`, `destroy` — the lifecycle of a window, from an inline HTML string. |
-| 02 | [Real assets on disk](02-assets.md) | `Webview.navigate` to load an `index.html` with its CSS and images; locating them with `Webview.Utils.web_dir`; the `dune` file that stages `web/` next to the binary. |
+| 02 | [Real assets on disk](02-assets.md) | `Webview.navigate` to load an `index.html` with its CSS and images; locating them with `Webview_desktop.Locate_assets.web_dir`; the `dune` file that stages `web/` next to the binary. |
 | 03 | [The JavaScript ↔ OCaml bridge](03-js-bridge.md) | `Webview.bind` to expose OCaml functions as `window.f()` promises, `Webview.return` to answer them, `Webview.eval` to call into the page, `Webview.dispatch` to do it safely from another thread — and the matching `dune` setup. |
 | 04 | [Asynchronous backend with Lwt](04-async-lwt.md) | Sharing the main thread between `Webview.run` and `Lwt_main.run`, wrapping bindings into Lwt handlers, and driving the page from a concurrent backend. Based on [`examples/timer/timer_lwt.ml`](../examples/timer/timer_lwt.ml). |
 | 05 | [A 100% OCaml application](05-full-ocaml.md) | Writing the frontend in OCaml too, compiled with `js_of_ocaml` (`(modes js)`) and [Brr](https://erratique.ch/software/brr): calling bindings and registering JS-visible functions from OCaml. Based on [`examples/js_of_ocaml/`](../examples/js_of_ocaml/). |
