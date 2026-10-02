@@ -43,7 +43,6 @@ let mingw_link_flags =
   [
     "-link";
     "-static-libgcc";
-    "-link";
     "-l:libstdc++.a";
     "-lole32";
     "-luser32";

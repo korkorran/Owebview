@@ -26,6 +26,13 @@ let mingw_flags = [ "-std=c++14";  ]
    "-l:libstdc++.a" takes its place. That spelling names the archive outright
    and does not depend on which driver is in use.
 
+   Note the position: "-l:libstdc++.a" sits among the bare -l entries, not
+   behind "-link". The two are different channels — ocamlmklib understands
+   -l<lib> itself, while "-link" forwards a flag to flexlink — and only the
+   bare one actually puts a library on the link line. Putting the archive
+   behind "-link" compiles nothing: every libstdc++ symbol comes out
+   undefined, with no complaint about the archive itself.
+
    Verify on Windows with:
 
      objdump -p _build/default/<your exe> | grep 'DLL Name'
@@ -35,7 +42,7 @@ let mingw_flags = [ "-std=c++14";  ]
    against posix threads, and "-link" "-l:libwinpthread.a" has to join the
    list below. *)
 let mingw_link_flags =
-  [ "-link"; "-static-libgcc"; "-link"; "-l:libstdc++.a"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
+  [ "-link"; "-static-libgcc"; "-l:libstdc++.a"; "-ladvapi32"; "-lole32"; "-lshell32"; "-lshlwapi"; "-luser32"; "-lversion" ]
 
 (* Linux: the webview backend is GTK 3 + WebKitGTK. *)
 let linux_packages = [ "gtk+-3.0"; "webkit2gtk-4.1" ]
