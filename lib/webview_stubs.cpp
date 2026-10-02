@@ -316,10 +316,17 @@ static void binding_trampoline(const char *id, const char *req, void *arg) {
   CAMLlocal2(vid, vreq);
   vid = caml_copy_string(id);
   vreq = caml_copy_string(req);
-  caml_callback2(b->closure, vid, vreq);
+  /* The _exn form rather than caml_callback2: a propagating exception would
+   * jump over CAMLdrop and over the lock release below. */
+  value res = caml_callback2_exn(b->closure, vid, vreq);
+  if (Is_exception_result(res))
+    std::fprintf(stderr, "owebview: binding handler raised\n");
 
-  caml_release_runtime_system();
+  /* CAMLdrop BEFORE handing the lock back: it restores
+   * Caml_state->local_roots, and Caml_state belongs to this thread only for
+   * as long as it holds the lock. */
   CAMLdrop;
+  caml_release_runtime_system();
 }
 
 CAMLprim value ocaml_webview_bind(value vw, value vname, value vclosure) {
@@ -409,8 +416,9 @@ static void dispatch_trampoline(webview_t w, void *arg) {
   caml_remove_generational_global_root(&d->closure);
   std::free(d);
 
-  caml_release_runtime_system();
+  /* Same order as in binding_trampoline, and for the same reason. */
   CAMLdrop;
+  caml_release_runtime_system();
 }
 
 CAMLprim value ocaml_webview_dispatch(value vw, value vclosure) {
