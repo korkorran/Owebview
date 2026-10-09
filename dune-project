@@ -11,9 +11,9 @@
 
 (package
  (name owebview)
- (synopsis "OCaml bindings for the webview library")
+ (synopsis "Native desktop apps with a web UI, through webview bindings")
  (description
-  "OCaml bindings for the webview library (https://github.com/webview/webview):\ncreate a native desktop window rendered by the system web engine, navigate to a\nURL or to inline HTML, and call back and forth between OCaml and JavaScript.\nThe binding covers the full webview 0.12 C API and stays deliberately\nlow-level; the C header is vendored, so nothing is fetched at build time.\n\nThe native dependencies are the ones of the system web engine: WebKit and Cocoa\non macOS (provided by the system, nothing to install), gtk+-3.0 and\nwebkit2gtk-4.1 on Linux (pulled in by the conf-gtk3-webkit package), and\nWebView2 on Windows (the runtime ships with Windows 10 and 11; the SDK headers\nare located through the NuGet cache at build time).")
+  "The package provides two libraries.\n\nowebview is the binding to the webview library\n(https://github.com/webview/webview): create a native desktop window\nrendered by the system web engine, navigate to a URL or to inline HTML,\nand call back and forth between OCaml and JavaScript. It covers the full webview\n0.12 C API and stays deliberately low-level.\n\nowebview.desktop adds what a desktop application needs around that window,\nand which webview itself does not provide: native menu bars and modal\ndialogs, the application icon, and locating the web assets next to the\nexecutable.")
  (documentation "https://korkorran.github.io/Owebview")
  (tags
   ("webview" "gui" "desktop" "webkit" "html" "javascript" "bindings"))
