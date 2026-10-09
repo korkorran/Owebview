@@ -81,11 +81,6 @@ let () =
 
 Once HTML rendering works, the fun part is the OCaml ↔ JavaScript bridge: `Webview.bind w random (...)` expose `window.random()` to the page; the result is a JS Promise. All the computation of random numbers is done by the OCaml back-end. While random number generation can be done in JavaScript, it gives an example of how to call native functions from the window.
 
-Other handy entry points: `Webview.navigate` (load a URL or a local `file://`
-page), `Webview.init` / `Webview.eval` (inject JavaScript), and
-`Webview.terminate` (close the window from code). The full API lives in
-[`webview/webview.mli`](webview/webview.mli).
-
 ## Install and use in your own project
 
 If your machine is on *Windows*, you must install the Microsoft Webview2 package before any OPAM installation,  :
@@ -102,76 +97,45 @@ Then depend on it from your `dune` file:
 ```dune
 (executable
  (name main)
- (libraries owebview))
-```
-
-Native desktop integration — locating your on-disk assets, the application
-icon, the system's own modal dialogs and the native menu bar — lives in a
-companion library, so that `owebview` itself stays a thin binding to the
-webview C API. Any app that loads its page from disk needs it:
-
-```dune
-(executable
- (name main)
  (libraries owebview owebview.desktop))
 ```
 
-It provides `Webview_desktop.Locate_assets` (finds your `web/` directory
+The Owebview package is divided in two seperate libraries :
+ - **owebview** itself stays a thin binding to the webview C API. It provides the module `Webview`, which contains webview lifecycle functions.
+ - **owebview.desktop** the companion library for the native desktop integration, in the `Webview_desktop` module.
+   - `Webview_desktop.Locate_assets` : locating your on-disk assets (finds your `web/` directory
 relative to the executable, whatever the working directory),
-`Webview_desktop.Icon` (the Dock/taskbar icon and the application id),
-`Webview_desktop.Dialog` and `Webview_desktop.Menu`:
+   - `Webview_desktop.Icon` : setting a dock icon in a dev environnement (can be ignored in production releases)
+   - `Webview_desktop.Dialog` : the system's own modal dialogs
+   - `Webview_desktop.Menu` : the application window native menu
 
-```ocaml
-(* From a binding callback, i.e. on the UI thread. *)
-if Webview_desktop.Dialog.confirm w ~title:"Quit" "Discard changes?" then
-  Webview.terminate w;
 
-match Webview_desktop.Dialog.open_file w () with
-| Some path -> print_endline path
-| None -> print_endline "cancelled"
-```
-
-```ocaml
-(* The menu bar, installed once the app is active. *)
-Webview.dispatch w (fun w ->
-    Webview_desktop.Menu.set w
-      [
-        ("MyApp", [ Menu.item "Quit" ~key:'q' ~modifiers:[ Cmd ]
-                      (fun () -> Webview.terminate w) ]);
-        ("File",  [ Menu.item "Open…" ~key:'o' ~modifiers:[ Cmd ] pick_file ]);
-      ])
-```
-
-## See it run
+## See the examples
 
 Clone the repo and launch one of the bundled example, for instance `hellowv`:
 
 ```sh
 git clone https://github.com/korkorran/Owebview.git
 cd Owebview
+nuget install Microsoft.Web.WebView2 # on windows only
+opam install . --deps-only
 ```
 
 ```sh
-opam install . --deps-only
-dune exec examples/hellowv/hellowv.exe
+dune build
+dune exec examples/hellowv/hellowv.exe          # a basic application
+dune exec examples/timer/timer_posix.exe        # a timer with threads
+dune exec examples/timer/timer_lwt.exe          # the same, driven by Lwt
+dune exec examples/d3/d3.exe                    # a D3.js chart
+dune exec examples/three/three.exe              # WebGL via three.js
+
+opam install brr                                # you will need brr to compile this example
+dune build
+dune exec examples/js_of_ocaml/hellowv.exe      # full OCaml application
 ```
 
-A window pops up with three buttons wired to OCaml: one adds two numbers, one
-reports your OS, and one opens the system's native file browser and shows you
-the path you picked. The example loads its UI from real `.html` / `.css` / `.js`
-files in [`examples/hellowv/web/`](examples/hellowv/web/) — peek at
-[`examples/hellowv/hellowv.ml`](examples/hellowv/hellowv.ml) to see how JavaScript calls back
-into OCaml.
 
-> **Linux Dock icon**: on native Wayland (GNOME's default), the Dock ignores
-> `Webview_desktop.Icon.set_app_icon` — it resolves an app's icon from an installed
-> `.desktop` file, not from window properties. Run
-> `examples/hellowv/install-desktop-entry.sh` once to install one for the
-> example (`--uninstall` removes it); see `Webview_desktop.Icon.set_app_id` in
-> [`desktop/icon.mli`](desktop/icon.mli) for the details.
-
-
-## Native dependencies
+## Native dev dependencies
 
 webview uses the system web engine, so you need its native libraries:
 
@@ -189,16 +153,10 @@ The platform-specific compile/link flags are detected automatically at build
 time — via `pkg-config` on Linux, and from the NuGet cache on Windows — so
 there's nothing to tweak by hand.
 
-> This is a thin binding that covers the **full webview 0.12 C API**. It stays
-> low-level on purpose: higher-level conveniences (such as JSON (de)serializing
-> binding arguments) are left to you.
-
 ## Contributing
 
-Feedback is very welcome! This binding is developed and tested mainly on macOS,
-so reports about building and running it on **Linux distributions** are
-especially valuable — does it compile, do the `depexts` resolve, does the
-`webkit2gtk-4.1` backend behave as expected on your distro?
+Feedback is very welcome! Reports about building and running it on **Linux distributions** are
+especially valuable.
 
 If you give it a try on Linux, please open an issue with your distribution,
 what worked and what didn't (build logs welcome). Pull requests improving
