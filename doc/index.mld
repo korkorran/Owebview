@@ -114,13 +114,21 @@ where the real detail lives: macOS runs the menu bar and the Dock icon
 application-globally, Linux needs a [.desktop] file under Wayland, and GTK 4
 supports neither the dialogs nor the menu bar.
 
-{1 Native dependencies}
+{1 Native dev dependencies}
 
-webview uses the system web engine, so its native libraries are needed:
+webview uses the system web engine, so building against it needs that engine's
+development files. Only Windows asks anything of you:
 
-- {b macOS}: WebKit / Cocoa, provided by the system.
-- {b Linux}: [gtk+-3.0] and [webkit2gtk-4.1] ([-dev] packages).
-- {b Windows}: the WebView2 runtime (ships with Windows 10/11).
+- {b macOS}: WebKit / Cocoa, already provided by the system. Nothing to
+  install.
+- {b Linux}: [gtk+-3.0] and [webkit2gtk-4.1] (the [-dev] packages). They come
+  from the [conf-gtk3-webkit] opam package, so [opam install] offers to
+  install them for your distribution.
+- {b Windows}: the WebView2 SDK headers, which are not redistributable and so
+  are not vendored. Fetch them once with
+  [nuget install Microsoft.Web.WebView2]; the build finds [WebView2.h] in the
+  NuGet cache on its own. The WebView2 runtime itself needs nothing — it ships
+  with Windows 10 and 11.
 
 [owebview.desktop] needs strictly less — the platform toolkit without the web
 engine — so it adds nothing to install. The platform-specific compile and link
