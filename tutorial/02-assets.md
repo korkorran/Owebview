@@ -124,55 +124,46 @@ from a Dock icon, or from another directory, and the page vanishes.
 The `Webview_desktop.Locate_assets` module resolves assets against the *executable* instead:
 
 ```ocaml
-val exe_dir   : unit -> string
-val asset_dir : unit -> string
-val web_dir   : ?dir:string -> unit -> string
+val exe_dir : unit -> string
+val web_dir : ?dir:string -> unit -> string
 ```
 
 ### `exe_dir`
 
-The absolute path of the directory containing the running executable. Everything
-else is built on it.
-
-### `asset_dir`
-
-The same, with one adjustment for development. Under `dune exec`, your binary
-lives in `_build/<context>/…` while your source assets stay in the source tree —
-they are two different directories. `asset_dir` strips the `_build/<context>/`
-segment, mapping the build path back to the matching source directory. When the
-executable is not under a `_build` directory, it returns `exe_dir` unchanged.
+The absolute path of the directory containing the running executable. The other
+one is built on it.
 
 ### `web_dir`
 
 The directory to resolve web assets against — this is the one you will actually
-call. It looks for an `index.html` in `exe_dir ()/web`, and uses that directory
-if it finds one; otherwise it falls back to `asset_dir ()/web`, in the source
-tree.
+call. It is simply `exe_dir ()/web`: the assets are read from beside the binary,
+and only from there.
 
-The build-tree copy comes first on purpose: it holds both the assets staged from
-your sources *and* any **generated** ones — for instance an `app.js` produced by
-`js_of_ocaml` in [step 05](05-full-ocaml.md), which exists nowhere in the source
-tree. The fallback covers the case where nothing has been staged yet.
+That is deliberate. Beside the binary is where a build puts *both* the files
+staged from your sources and any **generated** ones — an `app.js` produced by
+`js_of_ocaml` in [step 05](05-full-ocaml.md), say, which exists nowhere in your
+source tree. It is also what lets you copy or move a build tree and have it keep
+working, because the assets travel with the executable.
+
+The corollary matters while developing: **the assets have to have been built.**
+
+```sh
+dune build          # stages web/ next to the binary, via the alias below
+dune exec ./main.exe
+```
+
+`dune exec ./main.exe` on its own is not enough — it builds the executable and
+nothing beside it, so `web/` is missing from the build tree and the window comes
+up blank. If a page ever fails to load, that is the first thing to check.
 
 `web` is only the default name. If your assets live somewhere else, name the
-directory and the same two-place lookup applies to it:
+directory:
 
 ```ocaml
 let index = Filename.concat (Locate_assets.web_dir ~dir:"assets" ()) "index.html"
 ```
 
 Remember to match it in the `dune` alias below — `(glob_files assets/*)`.
-
-Concretely, in this project:
-
-```
-after `dune build`:                 after `dune exec` alone (nothing staged):
-exe_dir   = …/_build/default        exe_dir   = …/_build/default
-asset_dir = …/hello-owebview        asset_dir = …/hello-owebview
-web_dir   = …/_build/default/web    web_dir   = …/hello-owebview/web
-```
-
-Either way the page loads, which is exactly what you want while developing.
 
 ## The `dune` file
 
@@ -244,8 +235,9 @@ there instead.
 ## Exercises
 
 1. Delete `_build` and run `dune exec ./main.exe` without a prior `dune build`.
-   The page should still load — from the source tree this time. Print
-   `Webview_desktop.Locate_assets.web_dir ()` to see which branch was taken.
+   The window comes up blank, because nothing staged `web/` next to the binary.
+   Print `Webview_desktop.Locate_assets.web_dir ()` and look at that directory,
+   then run `dune build` and try again.
 2. Run the binary directly from another directory
    (`cd /tmp && …/_build/default/main.exe`). It keeps working, which a
    cwd-relative path would not.

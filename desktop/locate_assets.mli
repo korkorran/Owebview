@@ -15,20 +15,20 @@
 val exe_dir : unit -> string
 (** Absolute path to the directory containing the running executable. *)
 
-val asset_dir : unit -> string
-(** Directory to resolve on-disk assets against. When launched via
-    [dune exec], the executable lives under [_build/<context>/], where the
-    source assets are not copied; this maps such a path back to the matching
-    source directory. From an installed location the executable directory is
-    used as-is. *)
-
 val web_dir : ?dir:string -> unit -> string
-(** Directory to resolve web assets against.
+(** Directory to resolve web assets against: [exe_dir ()/web].
 
-    This is [exe_dir ()/web] when that directory holds an [index.html] —
-    which is where a build stages copied assets {e and} generated ones, such
-    as a [js_of_ocaml] bundle — and [asset_dir ()/web] otherwise.
+    Beside the executable is where a build puts them — both the ones staged
+    from your sources and any {e generated} ones, such as a [js_of_ocaml]
+    bundle, which exist nowhere else. It is also what lets a copied build tree
+    keep working, since the assets travel with the binary.
+
+    So the assets have to have been built. With dune that means [dune build];
+    [dune exec <exe>] on its own builds the executable and nothing beside it,
+    and the page will not be found. Staging them is a matter of attaching a
+    [glob_files] dependency on the directory to the [all] alias, next to the
+    [executable] stanza.
 
     [?dir] names the assets directory for projects that do not call it [web]:
-    [web_dir ~dir:"assets" ()] looks for [assets/] in the same two places.
-    It is a single directory name, not a path, and defaults to ["web"]. *)
+    [web_dir ~dir:"assets" ()] returns [exe_dir ()/assets]. It is a single
+    directory name, not a path, and defaults to ["web"]. *)
