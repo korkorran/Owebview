@@ -68,7 +68,7 @@ let () =
 
   (* ... bindings ... *)
 
-  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   (* Lwt gets its own thread; the webview keeps the main one. *)

@@ -59,7 +59,7 @@ executable:
 
 {[
   let index =
-    Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html"
+    Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html"
   in
   Webview.navigate w ("file://" ^ index)
 ]}
@@ -90,7 +90,7 @@ Four independent modules under {!module:Webview_desktop}:
 - {!module:Webview_desktop.Locate_assets} — find the application's [web/]
   directory relative to the {e executable} rather than the current working
   directory, so a page loads the same under [dune exec], from an installed
-  binary, or from a Dock icon. {!Webview_desktop.Locate_assets.web_dir} is the
+  binary, or from a Dock icon. {!Webview_desktop.Locate_assets.assets_dir} is the
   one to call.
 
 - {!module:Webview_desktop.Icon} — give a plain executable a real icon

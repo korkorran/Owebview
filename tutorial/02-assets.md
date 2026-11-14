@@ -5,7 +5,7 @@
 The inline HTML string of [step 01](01-first-window.md) got cramped fast, and it
 cannot pull in a stylesheet or an image. In this step we move the interface into
 real `.html`, `.css` and `.png` files, load it with `Webview.navigate`, and let
-`Webview_desktop.Locate_assets.web_dir` find those files whether the program runs from the build
+`Webview_desktop.Locate_assets.assets_dir` find those files whether the program runs from the build
 tree or from an installed location.
 
 ## The project layout
@@ -21,8 +21,9 @@ hello-owebview/
     └── logo.png
 ```
 
-The `web/` name is not arbitrary: it is the directory `Webview_desktop.Locate_assets.web_dir`
-looks for, so following the convention saves you from computing paths yourself.
+The `web/` name is only a convention — you name the directory yourself when
+calling `Webview_desktop.Locate_assets.assets_dir`, and it need not even sit
+inside the project directory.
 
 ## The page
 
@@ -70,7 +71,7 @@ let () =
   Webview.set_size w ~width:640 ~height:480 Webview.Hint_none;
 
   (* Locate web/index.html relative to the executable, not to the cwd. *)
-  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Webview.run w;
@@ -78,7 +79,7 @@ let () =
 ```
 
 That is the whole change: `set_html` becomes `navigate`, pointed at a `file://`
-URL built from `Webview_desktop.Locate_assets.web_dir ()`.
+URL built from `Webview_desktop.Locate_assets.assets_dir "web"`.
 
 ## `Webview.navigate`
 
@@ -102,7 +103,7 @@ Two things to keep in mind about the URL:
 
 - **It must be absolute.** `file://web/index.html` is not a path relative to
   anything; the part after `file://` is read as an absolute filesystem path.
-  This is why we build it from `web_dir ()`, which always returns an absolute
+  This is why we build it from `assets_dir "web"`, which always returns an absolute
   directory.
 - **It is a URL, not a path.** Characters that are special in URLs (spaces,
   `#`, `?`) need percent-encoding. It is rarely a problem in a build tree, but
@@ -124,8 +125,8 @@ from a Dock icon, or from another directory, and the page vanishes.
 The `Webview_desktop.Locate_assets` module resolves assets against the *executable* instead:
 
 ```ocaml
-val exe_dir : unit -> string
-val web_dir : ?dir:string -> unit -> string
+val exe_dir    : unit -> string
+val assets_dir : string -> string
 ```
 
 ### `exe_dir`
@@ -133,17 +134,27 @@ val web_dir : ?dir:string -> unit -> string
 The absolute path of the directory containing the running executable. The other
 one is built on it.
 
-### `web_dir`
+### `assets_dir`
 
-The directory to resolve web assets against — this is the one you will actually
-call. It is simply `exe_dir ()/web`: the assets are read from beside the binary,
-and only from there.
+The one you will actually call. You hand it the location of your assets **as
+seen from the executable**, and it gives you back an absolute path:
 
-That is deliberate. Beside the binary is where a build puts *both* the files
-staged from your sources and any **generated** ones — an `app.js` produced by
-`js_of_ocaml` in [step 05](05-full-ocaml.md), say, which exists nowhere in your
-source tree. It is also what lets you copy or move a build tree and have it keep
-working, because the assets travel with the executable.
+```ocaml
+Locate_assets.assets_dir "web"          (* web/ beside the binary *)
+Locate_assets.assets_dir "../web"       (* next to the binary's own directory *)
+Locate_assets.assets_dir "/opt/app/web" (* absolute: returned unchanged *)
+```
+
+There is no default name: the directory is yours to name, and nothing assumes
+it is called `web` or that it sits directly beside the binary. The second form
+is what you want when several executables share one set of assets.
+
+Resolving against the executable is deliberate. Beside the binary is where a
+build puts *both* the files staged from your sources and any **generated** ones
+— an `app.js` produced by `js_of_ocaml` in [step 05](05-full-ocaml.md), say,
+which exists nowhere in your source tree. It is also what lets you copy or move
+a build tree and have it keep working, because the assets travel with the
+executable.
 
 The corollary matters while developing: **the assets have to have been built.**
 
@@ -156,14 +167,8 @@ dune exec ./main.exe
 nothing beside it, so `web/` is missing from the build tree and the window comes
 up blank. If a page ever fails to load, that is the first thing to check.
 
-`web` is only the default name. If your assets live somewhere else, name the
-directory:
-
-```ocaml
-let index = Filename.concat (Locate_assets.web_dir ~dir:"assets" ()) "index.html"
-```
-
-Remember to match it in the `dune` alias below — `(glob_files assets/*)`.
+Whatever you name the directory, remember to match it in the `dune` alias
+below — `(glob_files assets/*)` for an `assets/`.
 
 ## The `dune` file
 
@@ -173,7 +178,7 @@ Remember to match it in the `dune` alias below — `(glob_files assets/*)`.
  (libraries owebview owebview.desktop))
 
 ; Stage the web/ assets next to the built binary, so the build tree is
-; self-contained. See Webview_desktop.Locate_assets.web_dir.
+; self-contained. See Webview_desktop.Locate_assets.assets_dir.
 (alias
  (name all)
  (deps
@@ -213,7 +218,7 @@ dune exec ./main.exe
 
 ## Shipping the assets
 
-`web_dir` looks beside the executable first, and that rule is what makes a
+`assets_dir` looks beside the executable first, and that rule is what makes a
 release work: place the `web/` directory next to the installed binary — inside
 the `.app` bundle on macOS, next to the `.exe` on Windows, in the same
 installation directory on Linux — and the same code finds it, with no `_build`
@@ -236,7 +241,7 @@ there instead.
 
 1. Delete `_build` and run `dune exec ./main.exe` without a prior `dune build`.
    The window comes up blank, because nothing staged `web/` next to the binary.
-   Print `Webview_desktop.Locate_assets.web_dir ()` and look at that directory,
+   Print `Webview_desktop.Locate_assets.assets_dir "web"` and look at that directory,
    then run `dune build` and try again.
 2. Run the binary directly from another directory
    (`cd /tmp && …/_build/default/main.exe`). It keeps working, which a

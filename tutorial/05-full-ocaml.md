@@ -99,7 +99,7 @@ Unchanged from [step 02](02-assets.md):
   (glob_files web/*)))
 ```
 
-This is where the design of `Webview_desktop.Locate_assets.web_dir` pays off. Remember that it
+This is where the design of `Webview_desktop.Locate_assets.assets_dir` pays off. Remember that it
 looks for `exe_dir ()/web` **first**, and only falls back to the source tree.
 Here that ordering is not a nicety, it is a requirement: `index.html` and
 `style.css` are staged there from your sources, but `app.js` exists **only** in
@@ -111,7 +111,7 @@ dune build
 dune exec ./main.exe
 ```
 
-A bare `dune exec ./main.exe` on a cold tree may resolve `web_dir` to the source
+A bare `dune exec ./main.exe` on a cold tree may resolve `assets_dir` to the source
 directory, where the page will load but the script will be missing.
 
 ## The frontend, in OCaml

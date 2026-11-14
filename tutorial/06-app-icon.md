@@ -57,12 +57,12 @@ It **raises `Failure`** when the image cannot be loaded — a missing file, an
 unreadable format — so guard it if the icon is optional:
 
 ```ocaml
-let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
+let icon = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "hello.png" in
 if Sys.file_exists icon then Webview_desktop.Icon.set_app_icon w icon
 ```
 
 Note where the icon lives: next to the web assets, found with
-`Webview_desktop.Locate_assets.web_dir ()` exactly as `index.html` was in
+`Webview_desktop.Locate_assets.assets_dir "web"` exactly as `index.html` was in
 [step 02](02-assets.md). Same reasoning, same benefit — it works from the build
 tree and from an installed location, and it does not depend on the working
 directory.
@@ -92,7 +92,7 @@ thread, and dispatched callbacks are processed once the loop is running — that
 is to say, once the app is active:
 
 ```ocaml
-let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
+let icon = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "hello.png" in
 if Sys.file_exists icon then
   Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
@@ -202,11 +202,11 @@ let () =
   Webview.set_size w ~width:480 ~height:320 Webview.Hint_none;
 
   (* Dispatched, so that on macOS it runs once the app is active. *)
-  let icon = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "hello.png" in
+  let icon = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "hello.png" in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon);
 
-  let index = Filename.concat (Webview_desktop.Locate_assets.web_dir ()) "index.html" in
+  let index = Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html" in
   Webview.navigate w ("file://" ^ index);
 
   Webview.run w;
