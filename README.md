@@ -134,6 +134,7 @@ dune build
 dune exec examples/js_of_ocaml/hellowv.exe      # full OCaml application
 ```
 
+You can see the full list in the [`examples/`](examples/) folder.
 
 ## Native dev dependencies
 
