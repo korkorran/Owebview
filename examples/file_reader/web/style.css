@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 1.5rem;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+#status {
+  color: rgba(127, 127, 127, 0.9);
+  font-style: italic;
+}
+
+#status.error {
+  color: #c0392b;
+  font-style: normal;
+}
+
+#path {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+#content {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 60vh;
+  overflow: auto;
+  border-radius: 6px;
+  background: rgba(127, 127, 127, 0.15);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

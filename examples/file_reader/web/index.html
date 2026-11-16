@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>File reader</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Icon-only button: the accessible name has to come from aria-label,
+         and the glyph is hidden from assistive tech. "currentColor" makes the
+         icon follow the button's text colour in both light and dark. -->
+    <button id="pick" type="button" title="Pick a file" aria-label="Pick a file">
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z" />
+        <path d="M13 3v6h6" />
+      </svg>
+      Pick a file
+    </button>
+    <p id="status">Pick a file to display it here.</p>
+    <p id="path" hidden></p>
+    <pre id="content" hidden></pre>
+    <script src="app.js"></script>
+  </body>
+</html>
