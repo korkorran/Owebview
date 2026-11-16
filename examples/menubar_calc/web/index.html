@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Menu bar calculator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h2>Operations</h2>
+    <ol id="history"></ol>
+    <p id="none">No operation yet — use the menu bar.</p>
+
+    <section id="current">
+      <span class="label">Result</span>
+      <output id="value">—</output>
+    </section>
+
+    <!-- The number prompt. Owebview's Dialog API offers confirm and the file
+         pickers, but no text input, so this modal is part of the page. -->
+    <div id="overlay" hidden>
+      <div id="prompt">
+        <label for="number">Set the number to</label>
+        <input id="number" type="number" step="any" />
+        <button id="ok" type="button">OK</button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

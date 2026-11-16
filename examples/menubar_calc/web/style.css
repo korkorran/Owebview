@@ -1,0 +1,111 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(127, 127, 127, 1);
+}
+
+#history {
+  margin: 0;
+  padding-left: 1.4rem;
+  max-height: 45vh;
+  overflow: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+#history li {
+  padding: 0.15rem 0;
+}
+
+#history .op {
+  font-weight: 600;
+}
+
+#history .arrow {
+  color: rgba(127, 127, 127, 0.8);
+  margin: 0 0.4rem;
+}
+
+#none {
+  color: rgba(127, 127, 127, 0.9);
+  font-style: italic;
+}
+
+#current {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(127, 127, 127, 0.15);
+}
+
+#current .label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(127, 127, 127, 1);
+}
+
+#value {
+  font-size: 2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The number prompt, shown by the menu's "Set to a number…" item. */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* Required, and easy to miss: the browser hides [hidden] elements with a
+   plain [hidden] { display: none } rule, which the #overlay selector above
+   outranks. Without this the overlay stays on screen however the hidden
+   property is set. */
+#overlay[hidden] {
+  display: none;
+}
+
+#prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: Canvas;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+#prompt label {
+  font-size: 0.85rem;
+  color: rgba(127, 127, 127, 1);
+}
+
+#prompt input {
+  font-size: 1.1rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  background: Field;
+  color: FieldText;
+}
+
+#prompt button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
