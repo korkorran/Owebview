@@ -1,0 +1,14 @@
+(executable
+ (name chat_window)
+ ; threads.posix: the console reader runs on a background thread, so that
+ ; input_line does not block the webview event loop.
+ (libraries webview webview_desktop threads.posix))
+
+; Stage the web/ assets next to the built binary (_build/.../chat_window/web/)
+; so the example is self-contained in the build tree. The page's app.js is
+; *generated* there by web/dune, and exists nowhere in the source tree — see
+; Webview_desktop.Locate_assets.assets_dir.
+(alias
+ (name all)
+ (deps
+  (glob_files web/*)))

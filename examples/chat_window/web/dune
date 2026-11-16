@@ -1,0 +1,18 @@
+; The page's logic is OCaml too, compiled to JavaScript by js_of_ocaml and
+; using Brr for the DOM. See ../chat_window.ml for the other half.
+(executable
+ (name app)
+ (libraries brr)
+ (js_of_ocaml
+  (flags
+   (:standard --target-env browser)))
+ (modes js)
+ (link_flags
+  (:standard -no-check-prims)))
+
+; index.html asks for app.js; js_of_ocaml names its output app.bc.js.
+(rule
+ (targets app.js)
+ (deps app.bc.js)
+ (action
+  (copy %{deps} %{targets})))
