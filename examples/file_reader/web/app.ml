@@ -25,6 +25,7 @@ let set_text el s = Brr.El.set_children el [ Brr.El.txt s ]
 let run _event =
   (* Runs once the DOM is complete, so the lookups below are safe. *)
   let button = Option.get (find_el "pick") in
+  let save = Option.get (find_el "save") in
   let status = Option.get (find_el "status") in
   let path_el = Option.get (find_el "path") in
   let content_el = Option.get (find_el "content") in
@@ -40,6 +41,9 @@ let run _event =
     set_text content_el (jstr "content");
     Brr.El.set_prop Brr.El.Prop.hidden false path_el;
     Brr.El.set_prop Brr.El.Prop.hidden false content_el;
+    (* There is something to save now. In Brr [disabled] is an attribute
+       rather than a property, and removing it is what enables the button. *)
+    Brr.El.set_at Brr.At.Name.disabled None save;
     if Jv.to_bool (Jv.get v "truncated") then
       show_status "Showing the first megabyte only."
     else Brr.El.set_prop Brr.El.Prop.hidden true status
@@ -53,7 +57,20 @@ let run _event =
         else show_file v)
       ~on_error:(fun e -> show_status ~error:true (Jstr.to_string (Jv.to_jstr e)))
   in
-  ignore (Brr.Ev.listen Brr.Ev.click on_click (Brr.El.as_target button))
+  ignore (Brr.Ev.listen Brr.Ev.click on_click (Brr.El.as_target button));
+
+  (* Save a copy of the displayed file under a name the user chooses. The
+     button is disabled until there is one, so no guard is needed here. *)
+  let on_save _ =
+    call "save_as" [||]
+      ~on_ok:(fun v ->
+        if Jv.is_null v then show_status "Save cancelled."
+        else
+          show_status
+            (Printf.sprintf "Saved to %s" (Jstr.to_string (Jv.to_jstr v))))
+      ~on_error:(fun e -> show_status ~error:true (Jstr.to_string (Jv.to_jstr e)))
+  in
+  ignore (Brr.Ev.listen Brr.Ev.click on_save (Brr.El.as_target save))
 
 let () =
   ignore

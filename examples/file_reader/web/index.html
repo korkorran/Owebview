@@ -6,9 +6,10 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Icon-only button: the accessible name has to come from aria-label,
-         and the glyph is hidden from assistive tech. "currentColor" makes the
-         icon follow the button's text colour in both light and dark. -->
+    <!-- The glyph is hidden from assistive tech, which reads the label
+         instead. "currentColor" makes the icon follow the button's text
+         colour in both light and dark. -->
+    <div id="toolbar">
     <button id="pick" type="button" title="Pick a file" aria-label="Pick a file">
       <svg
         viewBox="0 0 24 24"
@@ -27,6 +28,30 @@
       </svg>
       Pick a file
     </button>
+
+    <!-- Enabled only once a file is on screen: there is nothing to save
+         before that. -->
+    <button id="save" type="button" disabled title="Save as…" aria-label="Save as">
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <path d="M7 10l5 5 5-5" />
+        <path d="M12 15V3" />
+      </svg>
+      Save as…
+    </button>
+    </div>
+
     <p id="status">Pick a file to display it here.</p>
     <p id="path" hidden></p>
     <pre id="content" hidden></pre>

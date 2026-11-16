@@ -35,15 +35,15 @@
 
     {1 Platform notes}
 
-    - {b macOS}: [NSAlert] and [NSOpenPanel], run app-modally. The webview
+    - {b macOS}: [NSAlert], [NSOpenPanel] and [NSSavePanel], run app-modally. The webview
       window is ignored as a parent: attaching a sheet requires a completion
       block, which the Objective-C runtime C API cannot express.
-    - {b Linux}: [GtkMessageDialog] and [GtkFileChooserDialog], modal and
-      transient for the webview window. {b GTK 4 is not supported} — it
+    - {b Linux}: [GtkMessageDialog] and [GtkFileChooserDialog] (in its open
+      and save actions), modal and transient for the webview window. {b GTK 4 is not supported} — it
       removed [gtk_dialog_run] and the dialog constructors used here; on a
       GTK 4 build these functions are no-ops ([false] and [None]).
-    - {b Windows}: [MessageBoxW] and [IFileOpenDialog], owned by the webview
-      window.
+    - {b Windows}: [MessageBoxW], [IFileOpenDialog] and [IFileSaveDialog],
+      owned by the webview window.
     - Any other backend: a no-op ([false] and [None]). *)
 
 val confirm : Webview.t -> ?title:string -> string -> bool
@@ -75,3 +75,20 @@ val open_directory : Webview.t -> ?title:string -> unit -> string option
 (** [open_directory w ()] is {!open_file} for directories: it returns the
     absolute path of the single existing directory the user picked, or [None]
     if they cancelled. *)
+
+val save_file : Webview.t -> ?title:string -> ?name:string -> unit -> string option
+(** [save_file w ()] asks where to save, and returns the absolute path the
+    user settled on, or [None] if they cancelled.
+
+    Unlike {!open_file}, the path {b need not exist}: this is the dialog that
+    lets the user type a new name, which is what saving a document needs.
+    Nothing is written — creating the file is the caller's business.
+
+    [?name] pre-fills the name field, as in [~name:"report.pdf"]; the user is
+    free to change it. [?title] is the dialog's heading, as everywhere else in
+    this module, and is a different thing: one is what the dialog is called,
+    the other what the file is called.
+
+    Picking a path that already exists makes each platform ask for
+    confirmation before this returns, so a non-[None] result means the user
+    accepted any overwrite. *)

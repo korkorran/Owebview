@@ -10,6 +10,9 @@ external raw_confirm : nativeint -> string -> string -> bool
 external raw_open : nativeint -> string -> bool -> string
   = "ocaml_webview_dialog_open"
 
+external raw_save : nativeint -> string -> string -> string
+  = "ocaml_webview_dialog_save"
+
 let confirm w ?(title = "") message =
   raw_confirm (Webview.get_window w) title message
 
@@ -20,3 +23,8 @@ let open_ w title directory =
 
 let open_file w ?(title = "") () = open_ w title false
 let open_directory w ?(title = "") () = open_ w title true
+
+let save_file w ?(title = "") ?(name = "") () =
+  match raw_save (Webview.get_window w) title name with
+  | "" -> None
+  | path -> Some path

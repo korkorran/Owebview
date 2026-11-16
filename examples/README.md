@@ -16,7 +16,7 @@ dune exec examples/hellowv/hellowv.exe
 | [`d3/`](d3/) | JavaScript | A rainfall bar chart with a vendored D3.js. No bindings at all — proof that a serious JS library drops straight into the window. |
 | [`three/`](three/) | JavaScript | Rotating 3D shapes with a vendored three.js, over WebGL. Also binding-free. |
 | [`chat_window/`](chat_window/) | OCaml | A message list rendered by an OCaml front-end. Messages are typed in the terminal — pseudonym, then text — and pushed into the page from a reader thread through `Webview.dispatch`. |
-| [`file_reader/`](file_reader/) | OCaml | One button, the native file browser behind it. Picking a file shows its path and contents, and picking another replaces them. Uses `Webview_desktop.Dialog` and both outcomes of a binding promise — resolved and rejected. |
+| [`file_reader/`](file_reader/) | OCaml | Pick a file with the native browser to show its path and contents, then save a copy of it under a new name. Uses all three of `Webview_desktop.Dialog`'s file dialogs and both outcomes of a binding promise — resolved and rejected. |
 | [`menubar_calc/`](menubar_calc/) | OCaml | A calculator with no buttons: every operation is a menu bar item with a keyboard accelerator. Shows `Webview_desktop.Menu`, state held by the application and pushed to the page, and an in-page modal for the one thing the native dialogs cannot ask for — a number. |
 | [`js_of_ocaml/`](js_of_ocaml/) | OCaml | The same app as `hellowv`, with the page's logic written in OCaml too — compiled by `js_of_ocaml` with [Brr](https://erratique.ch/software/brr), so both sides of the bridge are OCaml. |
 

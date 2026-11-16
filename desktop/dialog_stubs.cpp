@@ -38,7 +38,7 @@
 #elif defined(__linux__)
 #include <gtk/gtk.h>
 #elif defined(_WIN32)
-#include <shobjidl.h> /* IFileOpenDialog */
+#include <shobjidl.h> /* IFileOpenDialog, IFileSaveDialog */
 #include <windows.h>  /* MessageBoxW */
 #endif
 
@@ -314,6 +314,123 @@ CAMLprim value ocaml_webview_dialog_open(value vwin, value vtitle,
   caml_acquire_runtime_system();
 
   std::free(title);
+  CAMLreturn(caml_copy_string(path.c_str()));
+}
+
+/* Ask where to save, including at a path that does not exist yet -- the whole
+ * point of this one, and what the open dialogs above cannot do. Returns the
+ * chosen path, or the empty string when the user cancelled (the OCaml side
+ * maps that to [None]).
+ *
+ * [vname] pre-fills the name field; the user is free to change it. Each
+ * backend confirms overwriting an existing file by itself, so there is
+ * nothing to add here.
+ *
+ *  - macOS: NSSavePanel, run app-modally.
+ *  - Linux (GTK 3): a GtkFileChooserDialog in SAVE action.
+ *  - Windows: IFileSaveDialog.
+ *
+ * A no-op returning the empty string on any other backend. */
+CAMLprim value ocaml_webview_dialog_save(value vwin, value vtitle, value vname) {
+  CAMLparam3(vwin, vtitle, vname);
+  char *title = wv_strdup_val(vtitle);
+  char *name = wv_strdup_val(vname);
+  std::string path;
+
+#if defined(__linux__) || defined(_WIN32)
+  void *parent = wv_window_of_val(vwin);
+#else
+  (void)vwin;
+#endif
+
+  caml_release_runtime_system();
+#if defined(__APPLE__)
+  {
+    id panel = ((id(*)(Class, SEL))objc_msgSend)(
+        objc_getClass("NSSavePanel"), sel_registerName("savePanel"));
+    if (*title != '\0')
+      wv_send_id(panel, "setMessage:", wv_nsstring(title));
+    if (*name != '\0')
+      wv_send_id(panel, "setNameFieldStringValue:", wv_nsstring(name));
+    /* NSModalResponseOK == 1. */
+    if (wv_run_modal(panel) == 1) {
+      id url = wv_send(panel, "URL");
+      if (url != nullptr) {
+        id nspath = wv_send(url, "path");
+        if (nspath != nullptr) {
+          const char *utf8 = ((const char *(*)(id, SEL))objc_msgSend)(
+              nspath, sel_registerName("UTF8String"));
+          if (utf8 != nullptr)
+            path = utf8;
+        }
+      }
+    }
+  }
+#elif defined(__linux__)
+#if GTK_MAJOR_VERSION < 4
+  {
+    GtkWindow *win = static_cast<GtkWindow *>(parent);
+    const char *heading = *title != '\0' ? title : "Save File";
+    GtkWidget *dialog = gtk_file_chooser_dialog_new(
+        heading, win, GTK_FILE_CHOOSER_ACTION_SAVE, "_Cancel",
+        GTK_RESPONSE_CANCEL, "_Save", GTK_RESPONSE_ACCEPT,
+        static_cast<const char *>(NULL));
+    gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog),
+                                                   TRUE);
+    if (*name != '\0')
+      gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), name);
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+      char *chosen = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+      if (chosen != nullptr) {
+        path = chosen;
+        g_free(chosen);
+      }
+    }
+    gtk_widget_destroy(dialog);
+  }
+#else
+  (void)parent;
+  (void)name; /* GTK 4: see the note in dialog.mli */
+#endif
+#elif defined(_WIN32)
+  {
+    HRESULT co = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    bool co_owned = (co == S_OK || co == S_FALSE);
+    IFileSaveDialog *dialog = nullptr;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileSaveDialog, nullptr,
+                                   CLSCTX_INPROC_SERVER, IID_IFileSaveDialog,
+                                   reinterpret_cast<void **>(&dialog)))) {
+      DWORD options = 0;
+      if (SUCCEEDED(dialog->GetOptions(&options)))
+        dialog->SetOptions(options | FOS_OVERWRITEPROMPT);
+      std::wstring wtitle = wv_widen(title);
+      if (!wtitle.empty())
+        dialog->SetTitle(wtitle.c_str());
+      std::wstring wname = wv_widen(name);
+      if (!wname.empty())
+        dialog->SetFileName(wname.c_str());
+      if (SUCCEEDED(dialog->Show(static_cast<HWND>(parent)))) {
+        IShellItem *item = nullptr;
+        if (SUCCEEDED(dialog->GetResult(&item)) && item != nullptr) {
+          PWSTR chosen = nullptr;
+          if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &chosen))) {
+            path = wv_narrow(chosen);
+            CoTaskMemFree(chosen);
+          }
+          item->Release();
+        }
+      }
+      dialog->Release();
+    }
+    if (co_owned)
+      CoUninitialize();
+  }
+#endif
+  caml_acquire_runtime_system();
+
+  std::free(title);
+  std::free(name);
   CAMLreturn(caml_copy_string(path.c_str()));
 }
 
