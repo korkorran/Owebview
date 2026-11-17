@@ -27,7 +27,7 @@ let () =
   Webview.bind w "os_type" (fun id req ->
       Printf.printf "binding called <os_type>: id=%s req=%s\n%!" id req;
       let result =
-        Printf.sprintf "show(%s)" (Yojson.Safe.to_string (`String (Utils.detect_os ())))
+        Printf.sprintf "show(%s)" (Utils.quote (Utils.detect_os ()))
       in
       Webview.eval w result;
       Webview.return w id ~error:false ~result:"");
@@ -57,7 +57,7 @@ let () =
                handler; guard against a message typed before the page loads. *)
             let js =
               Printf.sprintf "if (typeof show === 'function') show(%s);"
-                (Yojson.Safe.to_string (`String line))
+                (Utils.quote line)
             in
             Webview.dispatch w (fun w -> Webview.eval w js)
           done

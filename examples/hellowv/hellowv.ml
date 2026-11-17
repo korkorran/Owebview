@@ -68,7 +68,7 @@ let () =
       Printf.printf "binding called <pick_file>: id=%s req=%s\n%!" id req;
       let result =
         match choose_file () with
-        | Some path -> Yojson.Safe.to_string (`String path)
+        | Some path -> Utils.quote path
         | None -> "null"
       in
       Webview.return w id ~error:false ~result);
@@ -78,7 +78,7 @@ let () =
   let show_in_page w text =
     Webview.eval w
       (Printf.sprintf "if (typeof show === 'function') show(%s);"
-         (Yojson.Safe.to_string (`String text)))
+         (Utils.quote text))
   in
 
   (* A native menu bar, doing from the system menu what the buttons do from

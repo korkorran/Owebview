@@ -19,3 +19,6 @@ let detect_os () =
        | "" -> "Unix"
        | other -> other)
 
+(* A string as a JSON literal, ready for [Webview.return]'s result or for
+   interpolation into an [eval] snippet. *)
+let quote s = Yojson.Safe.to_string (`String s)

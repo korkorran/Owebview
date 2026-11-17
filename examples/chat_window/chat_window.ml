@@ -10,6 +10,9 @@
    may only be driven from the thread that called [run], the JavaScript call
    is handed over with [Webview.dispatch] rather than evaluated on the spot. *)
 
+(* A string as a JSON literal, ready for [Webview.return]'s result or for
+   interpolation into an [eval] snippet. *)
+let quote s = Yojson.Safe.to_string (`String s)
 
 (* Read one line, prompting for it. Raises [End_of_file] on Ctrl-D. *)
 let ask prompt =
@@ -22,8 +25,8 @@ let ask prompt =
    has finished loading. *)
 let post w ~author ~text =
   let js =
-    Printf.sprintf "if (typeof post === 'function') post(%s, %s);"
-      (Yojson.Safe.to_string (`String author)) (Yojson.Safe.to_string (`String text))
+    Printf.sprintf "if (typeof post === 'function') post(%s, %s);" (quote author)
+      (quote text)
   in
   Webview.dispatch w (fun w -> Webview.eval w js)
 

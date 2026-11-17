@@ -10,6 +10,9 @@
 
 module Menu = Webview_desktop.Menu
 
+(* A string as a JSON literal, ready for [Webview.return]'s result or for
+   interpolation into an [eval] snippet. *)
+let quote s = Yojson.Safe.to_string (`String s)
 
 (* Integers print without a decimal point; anything else keeps enough digits
    to stay honest (dividing 7 by 2 gives 3.5, not 3). *)
@@ -27,13 +30,13 @@ let render w =
   let entries =
     List.rev_map
       (fun (op, result) ->
-        Printf.sprintf {|{"op":%s,"result":%s}|} (Yojson.Safe.to_string (`String op))
-          (Yojson.Safe.to_string (`String (show_number result))))
+        Printf.sprintf {|{"op":%s,"result":%s}|} (quote op)
+          (quote (show_number result)))
       !history
   in
   Webview.eval w
     (Printf.sprintf {|render({"value":%s,"history":[%s]});|}
-       (Yojson.Safe.to_string (`String (show_number !value)))
+       (quote (show_number !value))
        (String.concat "," entries))
 
 (* Apply one operation, record it, redraw. *)

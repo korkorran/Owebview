@@ -11,11 +11,14 @@
    at the size cap below but would not be for a backend doing real work --
    see examples/timer for how to move that off the UI thread. *)
 
+(* A string as a JSON literal, ready for [Webview.return]'s result or for
+   interpolation into an [eval] snippet. *)
+let quote s = Yojson.Safe.to_string (`String s)
+
 (* Files are read into a JSON reply, so a huge one would be paid for three
    times over: read, encoded, then parsed by the page. A megabyte is plenty to
    look at. *)
 let max_bytes = 1024 * 1024
-
 
 (* Read at most [max_bytes], and say whether anything was left behind. *)
 let read_file path =
@@ -77,10 +80,9 @@ let () =
              would read as a comment on what is still on screen. *)
           let failed reason =
             answer ~error:true
-              (Yojson.Safe.to_string
-                 (`String
-                   (Printf.sprintf "Could not display %s: %s"
-                      (Filename.basename path) reason)))
+              (quote
+                 (Printf.sprintf "Could not display %s: %s"
+                    (Filename.basename path) reason))
           in
           match read_file path with
           | exception Sys_error msg -> failed msg
@@ -93,9 +95,7 @@ let () =
               current := Some path;
               answer ~error:false
                 (Printf.sprintf {|{"path":%s,"content":%s,"truncated":%b}|}
-                   (Yojson.Safe.to_string (`String path))
-                   (Yojson.Safe.to_string (`String content))
-                   truncated)));
+                   (quote path) (quote content) truncated)));
 
   (* window.save_as() -> Promise<string | null>
      The displayed file is copied, not the bytes the page holds: those are
@@ -104,9 +104,7 @@ let () =
   Webview.bind w "save_as" (fun id _req ->
       let answer ~error result = Webview.return w id ~error ~result in
       match !current with
-      | None ->
-          answer ~error:true
-            (Yojson.Safe.to_string (`String "No file to save — pick one first"))
+      | None -> answer ~error:true (quote "No file to save — pick one first")
       | Some src -> (
           let name = Filename.basename src in
           match
@@ -116,11 +114,10 @@ let () =
           | None -> answer ~error:false "null"
           | Some dst -> (
               match copy_file src dst with
-              | () -> answer ~error:false (Yojson.Safe.to_string (`String dst))
+              | () -> answer ~error:false (quote dst)
               | exception Sys_error msg ->
                   answer ~error:true
-                    (Yojson.Safe.to_string
-                       (`String (Printf.sprintf "Could not save: %s" msg))))));
+                    (quote (Printf.sprintf "Could not save: %s" msg)))));
 
   let index =
     Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html"
