@@ -16,26 +16,6 @@
    look at. *)
 let max_bytes = 1024 * 1024
 
-(* Quote a string as a JSON string literal.
-
-   [Printf]'s "%S" is deliberately not used: it escapes bytes >= 0x80 as a
-   decimal "\ddd", which JSON does not accept, so the page's JSON.parse would
-   reject the whole reply for any file containing an accent. JSON strings are
-   UTF-8, so raw bytes are passed through and only what would close the
-   literal or break the line is escaped. *)
-let json_quote s =
-  let b = Buffer.create (String.length s + 2) in
-  Buffer.add_char b '"';
-  String.iter
-    (function
-      | '"' -> Buffer.add_string b "\\\""
-      | '\\' -> Buffer.add_string b "\\\\"
-      | c when Char.code c < 0x20 || Char.code c = 0x7f ->
-          Buffer.add_string b (Printf.sprintf "\\u%04x" (Char.code c))
-      | c -> Buffer.add_char b c)
-    s;
-  Buffer.add_char b '"';
-  Buffer.contents b
 
 (* Read at most [max_bytes], and say whether anything was left behind. *)
 let read_file path =
@@ -97,9 +77,10 @@ let () =
              would read as a comment on what is still on screen. *)
           let failed reason =
             answer ~error:true
-              (json_quote
-                 (Printf.sprintf "Could not display %s: %s"
-                    (Filename.basename path) reason))
+              (Yojson.Safe.to_string
+                 (`String
+                   (Printf.sprintf "Could not display %s: %s"
+                      (Filename.basename path) reason)))
           in
           match read_file path with
           | exception Sys_error msg -> failed msg
@@ -112,7 +93,9 @@ let () =
               current := Some path;
               answer ~error:false
                 (Printf.sprintf {|{"path":%s,"content":%s,"truncated":%b}|}
-                   (json_quote path) (json_quote content) truncated)));
+                   (Yojson.Safe.to_string (`String path))
+                   (Yojson.Safe.to_string (`String content))
+                   truncated)));
 
   (* window.save_as() -> Promise<string | null>
      The displayed file is copied, not the bytes the page holds: those are
@@ -121,7 +104,9 @@ let () =
   Webview.bind w "save_as" (fun id _req ->
       let answer ~error result = Webview.return w id ~error ~result in
       match !current with
-      | None -> answer ~error:true (json_quote "No file to save — pick one first")
+      | None ->
+          answer ~error:true
+            (Yojson.Safe.to_string (`String "No file to save — pick one first"))
       | Some src -> (
           let name = Filename.basename src in
           match
@@ -131,10 +116,11 @@ let () =
           | None -> answer ~error:false "null"
           | Some dst -> (
               match copy_file src dst with
-              | () -> answer ~error:false (json_quote dst)
+              | () -> answer ~error:false (Yojson.Safe.to_string (`String dst))
               | exception Sys_error msg ->
                   answer ~error:true
-                    (json_quote (Printf.sprintf "Could not save: %s" msg)))));
+                    (Yojson.Safe.to_string
+                       (`String (Printf.sprintf "Could not save: %s" msg))))));
 
   let index =
     Filename.concat (Webview_desktop.Locate_assets.assets_dir "web") "index.html"

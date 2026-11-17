@@ -39,7 +39,7 @@ process's main thread — detaching `Webview.run` to another thread and keeping
 ```dune
 (executable
  (name main)
- (libraries owebview owebview.desktop lwt.unix threads.posix))
+ (libraries owebview owebview.desktop lwt.unix threads.posix yojson))
 
 (alias
  (name all)
@@ -117,9 +117,9 @@ Handlers then look like normal Lwt code:
 ```ocaml
 lwt_bind w "fetch_report" (fun id req ->
     let name =
-      match Scanf.sscanf_opt req "[%S]" (fun s -> s) with
-      | Some s -> s
-      | None -> "unknown"
+      match Yojson.Safe.from_string req with
+      | `List [ `String s ] -> s
+      | _ | (exception Yojson.Json_error _) -> "unknown"
     in
     let* () = Lwt_unix.sleep 2.0 in     (* cooperative: nothing is frozen *)
     Webview.return w id ~error:false

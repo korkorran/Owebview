@@ -39,7 +39,7 @@ bridge-demo/
 ```dune
 (executable
  (name main)
- (libraries owebview owebview.desktop threads.posix unix))
+ (libraries owebview owebview.desktop threads.posix unix yojson))
 
 (alias
  (name all)
@@ -48,6 +48,9 @@ bridge-demo/
 ```
 
 Compared with [step 02](02-assets.md), only the libraries changed.
+`yojson` is the new one: both halves of the bridge are JSON, and the section
+"Speaking JSON" below says why OCaml's `Printf` and `Scanf` cannot stand in
+for it.
 `threads.posix` gives us the background thread that drives the clock, and `unix`
 the wall-clock time. The `all` alias still stages `web/` next to the binary, as
 explained in the previous step. Nothing about the *bridge* itself needs an extra
@@ -58,10 +61,6 @@ library: `bind`, `eval` and `dispatch` all come from `owebview`.
 `main.ml`:
 
 ```ocaml
-(* Turn an OCaml string into a JSON string literal. See "Speaking JSON" below
-   for why this is only good enough for plain ASCII. *)
-let json_string s = Printf.sprintf "%S" s
-
 let () =
   let w = Webview.create ~debug:true () in
   Webview.set_title w "The bridge";
@@ -70,21 +69,25 @@ let () =
   (* window.add(a, b) -> Promise<number> *)
   Webview.bind w "add" (fun id req ->
       let result =
-        match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
-        | Some n -> string_of_int n
-        | None -> "null"
+        match Yojson.Safe.from_string req with
+        | `List [ `Int a; `Int b ] -> string_of_int (a + b)
+        | _ | (exception Yojson.Json_error _) -> "null"
       in
       Webview.return w id ~error:false ~result);
 
   (* window.greet(name) -> Promise<string>, rejected on a bad argument. *)
   Webview.bind w "greet" (fun id req ->
-      match Scanf.sscanf_opt req "[%S]" (fun s -> s) with
-      | Some name ->
-          let result = json_string (Printf.sprintf "Hello, %s!" name) in
+      match Yojson.Safe.from_string req with
+      | `List [ `String name ] ->
+          let result =
+            Yojson.Safe.to_string (`String (Printf.sprintf "Hello, %s!" name))
+          in
           Webview.return w id ~error:false ~result
-      | None ->
+      | _ | (exception Yojson.Json_error _) ->
           Webview.return w id ~error:true
-            ~result:(json_string "greet expects one string argument"));
+            ~result:
+              (Yojson.Safe.to_string
+                 (`String "greet expects one string argument")));
 
   (* window.quit() -> closes the window from the page. *)
   Webview.bind w "quit" (fun _id _req -> Webview.terminate w);
@@ -104,7 +107,9 @@ let () =
              Printf.sprintf "%02d:%02d:%02d" t.Unix.tm_hour t.Unix.tm_min
                t.Unix.tm_sec
            in
-           let js = Printf.sprintf "setClock(%s)" (json_string now) in
+           let js =
+             Printf.sprintf "setClock(%s)" (Yojson.Safe.to_string (`String now))
+           in
            Webview.dispatch w (fun w -> Webview.eval w js)
          done)
        ());
@@ -244,22 +249,41 @@ else in the API is not.
 
 ## Speaking JSON
 
-The examples above use `Scanf.sscanf_opt` to pick arguments out of `req`, and
-`Printf.sprintf "%S"` to build string results. That is small and dependency-free,
-and it is what the bundled examples do — but it is pattern matching on a text
-format, not parsing, and it has real limits:
+The bridge is a text protocol in **both** directions: `req` arrives as JSON,
+`result` leaves as JSON. So both ends need a JSON library — here
+[Yojson](https://github.com/ocaml-community/yojson), which is why it is in the
+`dune` file above.
 
-- `sscanf` handles `"[20,22]"` and `"[\"world\"]"` but not the JSON escapes a
-  browser may legitimately produce, such as `"[\"caf\\u00e9\"]"`.
-- OCaml's `%S` escapes non-ASCII bytes in decimal (`"café"` becomes
-  `"caf\195\169"`), which JSON does not understand. The promise is then rejected
-  with a parse error.
+The tempting alternative is `Printf.sprintf "%S"` to encode and
+`Scanf.sscanf_opt req "[%S]"` to decode. It is small, dependency-free, and
+wrong in both directions, for the same underlying reason: `Printf` and `Scanf`
+speak the syntax of **OCaml** literals, not JSON's.
 
-So: fine for a tutorial and for numeric or plain-ASCII payloads, and a bug
-waiting to happen anywhere else. For a real application add a JSON library —
-with [Yojson](https://github.com/ocaml-community/yojson), `Yojson.Safe.from_string req`
-gives you the argument list and `Yojson.Safe.to_string` produces a correct
-`result`.
+| | What goes wrong |
+|---|---|
+| `Printf "%S"` | escapes non-ASCII bytes in decimal — `"café"` becomes `"caf\195\169"`, which JSON rejects, and the promise fails with a parse error |
+| `Scanf "%S"` | does not know `\u00e9`, JSON's own spelling, and expects OCaml's `\233` instead |
+| `"[%S]"` | matches a request holding exactly one string and nothing else: `["Bob","x"]` and `["Bob",42]` both fail |
+
+With Yojson, encoding is one call and decoding is a pattern match:
+
+```ocaml
+Yojson.Safe.to_string (`String "Hello")        (* -> "\"Hello\"" *)
+
+match Yojson.Safe.from_string req with
+| `List [ `String name ] -> ...
+| _ | (exception Yojson.Json_error _) -> ...
+```
+
+One shape to watch when matching numbers: **JavaScript has a single number
+type, and `JSON.stringify` writes `42`, never `42.0`.** A whole number
+therefore arrives as `` `Int `` even when the page meant a float, so a binding
+that accepts decimals has to match both:
+
+```ocaml
+| `List [ `Int n ]   -> use (float_of_int n)
+| `List [ `Float n ] -> use n
+```
 
 ## `Webview.eval` and `Webview.init` — calling JavaScript from OCaml
 
@@ -292,7 +316,7 @@ the document already on screen.
 Both take JavaScript source as a string, so anything you interpolate must be
 escaped as JavaScript. Building `eval` snippets by string concatenation with
 user data is the same injection hazard it is on the web; go through a JSON
-encoder, as `setClock(%s)` does above with `json_string`.
+encoder, as `setClock(%s)` does above with `Yojson.Safe.to_string`.
 
 ## `Webview.dispatch` — the threading rule
 
@@ -376,9 +400,10 @@ rejected promises, missing functions and JSON errors are all reported there.
    string, and reject the promise with a message when the file does not exist.
 2. Make the clock stoppable: add a `toggle_clock()` binding that flips a `bool
    ref` the background thread reads.
-3. Replace the `Scanf`/`%S` pair with Yojson and feed the binding a non-ASCII
-   name (`greet("café")`) — first with the naive version to see the failure,
-   then with the library to see it work.
+3. Feed `greet` a non-ASCII name (`greet("café")`) and watch it round-trip.
+   Then swap the `Yojson.Safe.to_string` on the reply for
+   `Printf.sprintf "%S"` and watch the promise reject instead: the decimal
+   escapes it emits are not JSON, and the page never sees your answer.
 
 ## What's next
 

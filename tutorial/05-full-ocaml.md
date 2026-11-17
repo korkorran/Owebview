@@ -91,7 +91,7 @@ Unchanged from [step 02](02-assets.md):
 ```dune
 (executable
  (name main)
- (libraries owebview owebview.desktop unix threads.posix))
+ (libraries owebview owebview.desktop unix threads.posix yojson))
 
 (alias
  (name all)
@@ -231,9 +231,9 @@ The bundled example is instructive because its two bindings answer differently.
 ```ocaml
 Webview.bind w "add" (fun id req ->
     let result =
-      match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
-      | Some n -> string_of_int n
-      | None -> "null"
+      match Yojson.Safe.from_string req with
+      | `List [ `Int a; `Int b ] -> string_of_int (a + b)
+      | _ | (exception Yojson.Json_error _) -> "null"
     in
     Webview.return w id ~error:false ~result);
 ```

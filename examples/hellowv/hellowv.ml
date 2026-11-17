@@ -40,9 +40,10 @@ let () =
   Webview.bind w "add" (fun id req ->
       Printf.printf "binding called <add>: id=%s req=%s\n%!" id req;
       let result =
-        match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
-        | Some n -> string_of_int n
-        | None -> "null"
+        (* [req] is the JSON array of the JS arguments: "[20,22]" here. *)
+        match Yojson.Safe.from_string req with
+        | `List [ `Int a; `Int b ] -> string_of_int (a + b)
+        | _ | (exception Yojson.Json_error _) -> "null"
       in
       Webview.return w id ~error:false ~result);
 
@@ -67,7 +68,7 @@ let () =
       Printf.printf "binding called <pick_file>: id=%s req=%s\n%!" id req;
       let result =
         match choose_file () with
-        | Some path -> Utils.json_quote path
+        | Some path -> Yojson.Safe.to_string (`String path)
         | None -> "null"
       in
       Webview.return w id ~error:false ~result);
@@ -77,7 +78,7 @@ let () =
   let show_in_page w text =
     Webview.eval w
       (Printf.sprintf "if (typeof show === 'function') show(%s);"
-         (Utils.json_quote text))
+         (Yojson.Safe.to_string (`String text)))
   in
 
   (* A native menu bar, doing from the system menu what the buttons do from

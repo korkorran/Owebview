@@ -1,6 +1,6 @@
 (executable
  (name menubar_calc)
- (libraries webview webview_desktop))
+ (libraries webview webview_desktop yojson))
 
 (alias
  (name all)

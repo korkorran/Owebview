@@ -52,12 +52,13 @@ let () =
       (* Wait 2 s before printing. On the Lwt thread this is a cooperative,
          non-blocking sleep, so nothing is frozen while we wait. *)
       let* () = Lwt_unix.sleep 2.0 in
-      (match Scanf.sscanf_opt req "[%d]" (fun n -> n) with
-      | Some seconds ->
+      (match Yojson.Safe.from_string req with
+      | `List [ `Int seconds ] ->
           Printf.printf "[Thread %d] elapsed time: %d s\n%!"
             (Thread.id (Thread.self ()))
             seconds
-      | None -> Printf.printf "print_time: unexpected request %s\n%!" req);
+      | _ | (exception Yojson.Json_error _) ->
+          Printf.printf "print_time: unexpected request %s\n%!" req);
       Webview.return w id ~error:false ~result:"null";
       Lwt.return_unit);
 

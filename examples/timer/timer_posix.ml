@@ -18,12 +18,13 @@ let () =
         (Thread.create
            (fun () ->
              Thread.delay 2.0;
-             (match Scanf.sscanf_opt req "[%d]" (fun n -> n) with
-             | Some seconds ->
+             (match Yojson.Safe.from_string req with
+             | `List [ `Int seconds ] ->
                  Printf.printf "[Thread %d] elapsed time: %d s\n%!"
                    (Thread.id (Thread.self ()))
                    seconds
-             | None -> Printf.printf "print_time: unexpected request %s\n%!" req);
+             | _ | (exception Yojson.Json_error _) ->
+                 Printf.printf "print_time: unexpected request %s\n%!" req);
              Webview.return w id ~error:false ~result:"null")
            ()));
 

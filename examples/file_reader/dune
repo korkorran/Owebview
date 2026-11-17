@@ -1,6 +1,6 @@
 (executable
  (name file_reader)
- (libraries webview webview_desktop))
+ (libraries webview webview_desktop yojson))
 
 ; Stage the web/ assets next to the built binary. The page's app.js is
 ; *generated* there by web/dune and exists nowhere in the source tree — see

@@ -10,21 +10,6 @@
 
 module Menu = Webview_desktop.Menu
 
-(* Quote a string as a JSON string literal; see examples/file_reader for why
-   [Printf]'s "%S" is the wrong tool here. *)
-let json_quote s =
-  let b = Buffer.create (String.length s + 2) in
-  Buffer.add_char b '"';
-  String.iter
-    (function
-      | '"' -> Buffer.add_string b "\\\""
-      | '\\' -> Buffer.add_string b "\\\\"
-      | c when Char.code c < 0x20 || Char.code c = 0x7f ->
-          Buffer.add_string b (Printf.sprintf "\\u%04x" (Char.code c))
-      | c -> Buffer.add_char b c)
-    s;
-  Buffer.add_char b '"';
-  Buffer.contents b
 
 (* Integers print without a decimal point; anything else keeps enough digits
    to stay honest (dividing 7 by 2 gives 3.5, not 3). *)
@@ -42,13 +27,13 @@ let render w =
   let entries =
     List.rev_map
       (fun (op, result) ->
-        Printf.sprintf {|{"op":%s,"result":%s}|} (json_quote op)
-          (json_quote (show_number result)))
+        Printf.sprintf {|{"op":%s,"result":%s}|} (Yojson.Safe.to_string (`String op))
+          (Yojson.Safe.to_string (`String (show_number result))))
       !history
   in
   Webview.eval w
     (Printf.sprintf {|render({"value":%s,"history":[%s]});|}
-       (json_quote (show_number !value))
+       (Yojson.Safe.to_string (`String (show_number !value)))
        (String.concat "," entries))
 
 (* Apply one operation, record it, redraw. *)
@@ -125,9 +110,12 @@ let () =
 
   (* The number typed into the page's prompt comes back here. *)
   Webview.bind w "set_number" (fun id req ->
-      (match Scanf.sscanf_opt req "[%f]" (fun n -> n) with
-      | Some n -> reset w "set" n
-      | None -> ());
+      (* A whole number is sent as a JSON integer, not a float: JSON.stringify
+         writes 42, never 42.0, so both shapes have to be accepted. *)
+      (match Yojson.Safe.from_string req with
+      | `List [ `Int n ] -> reset w "set" (float_of_int n)
+      | `List [ `Float n ] -> reset w "set" n
+      | _ | (exception Yojson.Json_error _) -> ());
       Webview.return w id ~error:false ~result:"null");
 
   let index =

@@ -16,9 +16,10 @@ let () =
   Webview.bind w "add" (fun id req ->
       Printf.printf "binding called <add>: id=%s req=%s\n%!" id req;
       let result =
-        match Scanf.sscanf_opt req "[%d,%d]" (fun a b -> a + b) with
-        | Some n -> string_of_int n
-        | None -> "null"
+        (* [req] is the JSON array of the JS arguments: "[20,22]" here. *)
+        match Yojson.Safe.from_string req with
+        | `List [ `Int a; `Int b ] -> string_of_int (a + b)
+        | _ | (exception Yojson.Json_error _) -> "null"
       in
       Webview.return w id ~error:false ~result);
 
@@ -26,7 +27,7 @@ let () =
   Webview.bind w "os_type" (fun id req ->
       Printf.printf "binding called <os_type>: id=%s req=%s\n%!" id req;
       let result =
-        Printf.sprintf "show(%s)" (Utils.js_quote (Utils.detect_os ()))
+        Printf.sprintf "show(%s)" (Yojson.Safe.to_string (`String (Utils.detect_os ())))
       in
       Webview.eval w result;
       Webview.return w id ~error:false ~result:"");
@@ -56,7 +57,7 @@ let () =
                handler; guard against a message typed before the page loads. *)
             let js =
               Printf.sprintf "if (typeof show === 'function') show(%s);"
-                (Utils.js_quote line)
+                (Yojson.Safe.to_string (`String line))
             in
             Webview.dispatch w (fun w -> Webview.eval w js)
           done
