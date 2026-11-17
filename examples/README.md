@@ -18,10 +18,10 @@ dune exec examples/hellowv/hellowv.exe
 | [`chat_window/`](chat_window/) | OCaml | A message list rendered by an OCaml front-end. Messages are typed in the terminal — pseudonym, then text — and pushed into the page from a reader thread through `Webview.dispatch`. |
 | [`file_reader/`](file_reader/) | OCaml | Pick a file with the native browser to show its path and contents, then save a copy of it under a new name. Uses all three of `Webview_desktop.Dialog`'s file dialogs and both outcomes of a binding promise — resolved and rejected. |
 | [`menubar_calc/`](menubar_calc/) | OCaml | A calculator with no buttons: every operation is a menu bar item with a keyboard accelerator. Shows `Webview_desktop.Menu`, state held by the application and pushed to the page, and an in-page modal for the one thing the native dialogs cannot ask for — a number. |
-| [`js_of_ocaml/`](js_of_ocaml/) | OCaml | The same app as `hellowv`, with the page's logic written in OCaml too — compiled by `js_of_ocaml` with [Brr](https://erratique.ch/software/brr), so both sides of the bridge are OCaml. |
+| [`hellowv_ml/`](hellowv_ml/) | OCaml | The same app as `hellowv`, with the page's logic written in OCaml too — compiled by `js_of_ocaml` with [Brr](https://erratique.ch/software/brr), so both sides of the bridge are OCaml. |
 
 Two of them have notes of their own: [`timer/README.md`](timer/README.md) on
-using Owebview with Lwt, and [`js_of_ocaml/README.md`](js_of_ocaml/README.md)
+using Owebview with Lwt, and [`hellowv_ml/README.md`](hellowv_ml/README.md)
 on the OCaml front-end.
 
 The [tutorial](../tutorial/) builds the same ideas up step by step, from a

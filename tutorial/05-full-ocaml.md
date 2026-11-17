@@ -13,10 +13,10 @@ exposes bindings with `Webview.bind`, still pushes into the page with
 `Webview.eval`. What changes is who writes `app.js`: Dune does.
 
 The reference implementation is
-[`examples/js_of_ocaml/`](../examples/js_of_ocaml/).
+[`examples/hellowv_ml/`](../examples/hellowv_ml/).
 
 ```sh
-dune exec examples/js_of_ocaml/hellowv.exe
+dune exec examples/hellowv_ml/hellowv.exe
 ```
 
 ## The project layout
@@ -261,7 +261,7 @@ context the failure is different and nastier: `%S` escapes bytes above 127 as a
 decimal `\ddd`, which JavaScript reads as a legacy **octal** escape — so `"café"`
 does not fail loudly, it arrives mangled.
 
-[`examples/js_of_ocaml/utils.ml`](../examples/js_of_ocaml/utils.ml) carries a
+[`examples/hellowv_ml/utils.ml`](../examples/hellowv_ml/utils.ml) carries a
 correct `js_quote`: it passes UTF-8 bytes through untouched and escapes only
 what would close the literal or break the line.
 

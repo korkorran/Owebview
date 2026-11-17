@@ -131,7 +131,7 @@ dune exec examples/three/three.exe              # WebGL via three.js
 
 opam install brr                                # you will need brr to compile this example
 dune build
-dune exec examples/js_of_ocaml/hellowv.exe      # full OCaml application
+dune exec examples/hellowv_ml/hellowv.exe      # full OCaml application
 ```
 
 You can see the full list in the [`examples/`](examples/) folder.
