@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#36486B"/>
+      <stop offset="1" stop-color="#1B2437"/>
+    </linearGradient>
+    <linearGradient id="silk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7EBD3"/>
+      <stop offset="1" stop-color="#E4CFA6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- noeud papillon : deux ailes a bord externe concave, plus un noeud central -->
+  <g fill="url(#silk)">
+    <path d="M 86,150 L 240,212 L 240,300 L 86,362 C 104,322 104,190 86,150 Z"/>
+    <path d="M 426,150 L 272,212 L 272,300 L 426,362 C 408,322 408,190 426,150 Z"/>
+  </g>
+  <rect x="224" y="198" width="64" height="116" rx="20" ry="20" fill="#D8C197"/>
+</svg>

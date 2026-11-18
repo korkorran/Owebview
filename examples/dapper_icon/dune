@@ -1,0 +1,10 @@
+(executable
+ (name dapper_icon)
+ (libraries webview webview_desktop))
+
+; This example has no web/ directory: its page is an inline HTML string. The
+; icon is its only asset, so it is staged directly beside the binary, which is
+; where Webview_desktop.Locate_assets.exe_dir looks.
+(alias
+ (name all)
+ (deps dapper.png))
