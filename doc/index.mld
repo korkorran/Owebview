@@ -97,7 +97,8 @@ Four independent modules under {!module:Webview_desktop}:
   instead of the generic one: {!Webview_desktop.Icon.set_app_icon} for the
   Dock, taskbar or switcher, and {!Webview_desktop.Icon.set_app_id} for the
   application id a Wayland desktop matches against an installed [.desktop]
-  file.
+  file — which {!Webview_desktop.Icon.install_desktop_entry} writes for you,
+  since under Wayland the icon does not appear without it.
 
 - {!module:Webview_desktop.Dialog} — the system's own modal dialogs:
   {!Webview_desktop.Dialog.confirm}, {!Webview_desktop.Dialog.open_file} and

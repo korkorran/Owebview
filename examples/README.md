@@ -11,7 +11,7 @@ dune exec examples/hellowv/hellowv.exe
 | Example | Front-end | What it shows |
 |---|---|---|
 | [`random_generator/`](random_generator/) | JavaScript | The smallest complete app: an inline HTML string, one `Webview.bind` exposing OCaml's random number generator to a button. No assets, no files. |
-| [`dapper_icon/`](dapper_icon/) | — | An application icon and nothing else: an inline HTML page, one PNG staged beside the binary, and `Webview_desktop.Icon`. The only example that locates its asset with `Locate_assets.exe_dir`, having no `web/` directory at all. |
+| [`dapper_icon/`](dapper_icon/) | — | An application icon and nothing else: an inline HTML page, one PNG staged beside the binary, and `Webview_desktop.Icon`. The only example that locates its asset with `Locate_assets.exe_dir`, having no `web/` directory at all. `--install-icon` writes the `.desktop` entry Linux needs under Wayland, from OCaml rather than from a shell script. |
 | [`hellowv/`](hellowv/) | JavaScript | The tour. Assets loaded from `web/`, three bindings (add, OS detection, native file picker), a Dock icon, and a native menu bar with accelerators. |
 | [`timer/`](timer/) | JavaScript | A stopwatch driven from the page, paused and resumed from the terminal through `Webview.dispatch`. Two executables, `timer_posix` and `timer_lwt`, implementing the same thing with raw threads and with Lwt. |
 | [`d3/`](d3/) | JavaScript | A rainfall bar chart with a vendored D3.js. No bindings at all — proof that a serious JS library drops straight into the window. |

@@ -51,3 +51,47 @@ val set_app_id : string -> unit
     Call this once, {b before} {!Webview.create}, so it applies to the first
     window realized. See {!set_app_icon} for why this matters on
     Linux/Wayland. *)
+
+val install_desktop_entry :
+  ?name:string ->
+  ?comment:string ->
+  ?categories:string list ->
+  ?exec:string ->
+  app_id:string ->
+  icon:string ->
+  unit ->
+  string option
+(** Install the [.desktop] file a Linux desktop needs in order to show the
+    application's icon, and return the path written.
+
+    {!set_app_icon} only sets the X11 [_NET_WM_ICON] property, which native
+    Wayland does not have: there, the shell resolves an application's icon
+    from an installed [.desktop] file, matched against the running process by
+    its application id. Under Wayland the icon therefore never appears until
+    such a file exists — and that is what this writes.
+
+    The entry goes to [$XDG_DATA_HOME/applications], or
+    [$HOME/.local/share/applications] when that variable is unset, under a
+    name derived from [app_id]. Writing it again simply replaces it. To remove
+    it, delete the returned path: nothing else is left behind.
+
+    - [app_id] is written as [StartupWMClass], the key the shell matches the
+      process against, so it must be the same string passed to {!set_app_id}.
+    - [icon] is an absolute path to the image; it must exist.
+    - [exec] is the command the desktop launches, and defaults to
+      [Sys.executable_name] — which is usually what you want, since the
+      running binary is the one being described.
+    - [name] is the label shown to the user, and defaults to [app_id].
+    - [comment] and [categories] are written only if given;
+      [~categories:["Development"]] becomes [Categories=Development;].
+
+    Returns [None], having done nothing, on any platform other than Linux:
+    elsewhere the icon comes from the application itself or from its bundle,
+    and there is no desktop entry to install.
+
+    Raises [Failure] if [icon] does not exist, if neither [XDG_DATA_HOME] nor
+    [HOME] is set, or if any value contains a newline — the entry format has
+    no escape for one, and it would start a new key.
+
+    After installing, [update-desktop-database] is run when available, since
+    some desktops cache that directory; its failure is not reported. *)

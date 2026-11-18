@@ -6,7 +6,10 @@
    directly beside the binary.
 
    What to look at is outside the window: the Dock on macOS, the taskbar or
-   the window switcher on Linux and Windows. *)
+   the window switcher on Linux and Windows.
+
+   Run with --install-icon to install the desktop entry that Linux needs for
+   any of that to show up under Wayland. *)
 
 let page =
   {|<!doctype html>
@@ -20,31 +23,71 @@ let page =
       </body>
     </html>|}
 
-let () =
+(* The application id. It is what a Wayland desktop matches against the
+   installed .desktop file, so [set_app_id] and the entry have to agree —
+   passing the same string to both is what arranges that. *)
+let app_id = "dapper_icon"
+
+(* The icon lives beside the binary: [exe_dir] rather than [assets_dir],
+   since this example has no web/ directory for the latter to find. *)
+let icon_path () =
+  Filename.concat (Webview_desktop.Locate_assets.exe_dir ()) "dapper.png"
+
+(* --install-icon: write the .desktop entry, then say what happened.
+
+   All of the work is in the library — [Webview_desktop.Icon] knows where the
+   entry belongs and what it must contain. What is left here is the policy an
+   application has to choose for itself: which labels to use, and what to tell
+   the user afterwards. *)
+let install_icon () =
+  match
+    Webview_desktop.Icon.install_desktop_entry ~app_id ~icon:(icon_path ())
+      ~name:"Dapper (owebview)" ~comment:"owebview dapper_icon example"
+      ~categories:[ "Development" ] ()
+  with
+  | None ->
+      prerr_endline
+        "--install-icon only applies on Linux: elsewhere the icon comes from \
+         the application itself, and this example already sets it.";
+      exit 1
+  | Some path ->
+      Printf.printf "Installed %s\n" path;
+      print_endline
+        "Run it again without the option — the bow tie should now show in the \
+         Dock or taskbar.";
+      Printf.printf "Undo with: rm %s\n" (Filename.quote path)
+
+let run_window () =
   (* Linux only, no-op elsewhere, and it has to come before [create] so that it
-     applies to the first window. Under Wayland the desktop matches this id
-     against an installed .desktop file to find the icon; see
-     examples/hellowv/install-desktop-entry.sh. *)
-  Webview_desktop.Icon.set_app_id "dapper_icon";
+     applies to the first window. This is the id the installed .desktop file
+     carries as StartupWMClass. *)
+  Webview_desktop.Icon.set_app_id app_id;
 
   let w = Webview.create () in
   Webview.set_title w "Dapper";
   Webview.set_size w ~width:420 ~height:300 Webview.Hint_none;
   Webview.set_html w page;
 
-  (* [exe_dir] rather than [assets_dir]: with no web/ directory, the icon is
-     staged straight beside the binary by the alias in dune. *)
-  let icon =
-    Filename.concat (Webview_desktop.Locate_assets.exe_dir ()) "dapper.png"
-  in
-
   (* Dispatched, not called outright: on macOS the process only becomes a
      Dock-visible application once [run] has started, and an icon set before
      that is ignored. The callback runs on the UI thread once the loop is
      going. *)
+  let icon = icon_path () in
   if Sys.file_exists icon then
     Webview.dispatch w (fun w -> Webview_desktop.Icon.set_app_icon w icon)
   else prerr_endline "dapper.png is missing — run `dune build` first";
 
   Webview.run w;
   Webview.destroy w
+
+let () =
+  match List.tl (Array.to_list Sys.argv) with
+  | [] -> run_window ()
+  | [ "--install-icon" ] -> (
+      try install_icon ()
+      with Failure msg ->
+        prerr_endline msg;
+        exit 1)
+  | _ ->
+      prerr_endline "usage: dapper_icon [--install-icon]";
+      exit 2
